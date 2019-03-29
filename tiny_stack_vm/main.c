@@ -7,11 +7,15 @@ typedef unsigned char flag;
 enum { false, true };
 
 #define STACK_SIZE 8
+#define CALL_STACK_SIZE 8
 #define PROG_SIZE 64
 
 // STACK
 number stack[STACK_SIZE];
 number stack_pointer = -1;
+// CALL STACK
+number call_stack[STACK_SIZE];
+number call_stack_pointer = -1;
 // PROGRAM MEMORY
 instruction program[PROG_SIZE];
 number program_pointer = -1;
@@ -22,15 +26,50 @@ enum {
 	HALT,
 	DUP, POP,
 	ADD, SUB, MUL, DIV,	MOD,
+	AND, OR, NOT, EQ, LT, GT,
+	IF, ELSE, ENDIF
 	/* TODO:
 	BAND, BOR, BLEFT, BRIGHT,
-	AND, OR, NOT, EQ, LT, GT,
 	GOTO, GOSUB, RETURN,
-	IF, ELSE, ENDIF,
 	WHILE, ENDWHILE,
 	DELAY
 	*/
 };
+
+// return instruction as number
+number get_value(instruction i) {
+	return i & 0x0FF;
+}
+
+// return type of instruction
+flag get_type(instruction i) {
+	return i >> 8;
+}
+
+// return instruction from number
+instruction _(number v) {
+	return v | 0x100;
+}
+
+void print_core() {
+	printf("%03x - HALT\n", _(HALT));
+	printf("%03x - DUP\n", _(DUP));
+	printf("%03x - POP\n", _(POP));
+	printf("%03x - ADD\n", _(ADD));
+	printf("%03x - SUB\n", _(SUB));
+	printf("%03x - MUL\n", _(MUL));
+	printf("%03x - DIV\n", _(DIV));
+	printf("%03x - MOD\n", _(MOD));
+	printf("%03x - AND\n", _(AND));
+	printf("%03x - OR\n", _(OR));
+	printf("%03x - NOT\n", _(NOT));
+	printf("%03x - EQ\n", _(EQ));
+	printf("%03x - LT\n", _(LT));
+	printf("%03x - GT\n", _(GT));
+	printf("%03x - IF\n", _(IF));
+	printf("%03x - ELSE\n", _(ELSE));
+	printf("%03x - ENDIF\n", _(ENDIF));
+}
 
 void load_program(instruction *p) {
 	for (number i = 0; i < PROG_SIZE; i++) {
@@ -47,10 +86,15 @@ void print_program() {
 }
 
 void print_stack() {
-	printf("STACK POINTER: %d\n", stack_pointer);
 	printf("STACK:\n");
 	for (number i = 0; i < STACK_SIZE; i++) {
+		if (i == stack_pointer) {
+			printf("[ ");
+		}
 		printf("%d ", stack[i]);
+		if (i == stack_pointer) {
+			printf("] ");
+		}
 	}
 	printf("\n");
 }
@@ -59,21 +103,6 @@ void push_to_stack(number v) {
 	printf("PUSH %d\n", v);
 	stack_pointer++;
 	stack[stack_pointer] = v;
-}
-
-// return instruction as number
-number get_value(instruction i) {
-	return i & 0x0FF;
-}
-
-// return type of instruction
-flag get_type(instruction i) {
-	return i >> 8;
-}
-
-// return instruction from number
-instruction get_instruction(number v) {
-	return v | 0x100;
 }
 
 void do_primitive(instruction i) {
@@ -117,6 +146,74 @@ void do_primitive(instruction i) {
 			stack[stack_pointer-1] = stack[stack_pointer - 1] % stack[stack_pointer];
 			stack_pointer--;
 		break;
+		case AND:
+			printf("AND %d %d\n", stack[stack_pointer -1 ], stack[stack_pointer]);
+			stack[stack_pointer-1] = (stack[stack_pointer - 1] == true)
+								  && (stack[stack_pointer] == true);
+			stack_pointer--;
+		break;
+		case OR:
+			printf("OR %d %d\n", stack[stack_pointer -1 ], stack[stack_pointer]);
+			stack[stack_pointer-1] = (stack[stack_pointer - 1] == true)
+								  || (stack[stack_pointer] == true);
+			stack_pointer--;
+		break;
+		case NOT:
+			printf("NOT %d\n", stack[stack_pointer]);
+			if (stack[stack_pointer] == false) {
+				stack[stack_pointer] = true;
+			} else {
+				stack[stack_pointer] = false;
+			}
+		break;
+		case EQ:
+			printf("EQ %d %d\n", stack[stack_pointer -1 ], stack[stack_pointer]);
+			stack[stack_pointer-1] = stack[stack_pointer - 1] == stack[stack_pointer];
+			stack_pointer--;
+		break;
+		case LT:
+			printf("LT %d %d\n", stack[stack_pointer -1 ], stack[stack_pointer]);
+			stack[stack_pointer-1] = stack[stack_pointer - 1] < stack[stack_pointer];
+			stack_pointer--;
+		break;
+		case GT:
+			printf("GT %d %d\n", stack[stack_pointer -1 ], stack[stack_pointer]);
+			stack[stack_pointer-1] = stack[stack_pointer - 1] > stack[stack_pointer];
+			stack_pointer--;
+		break;
+		case IF:
+			printf("IF %d\n", stack[stack_pointer]);
+			number stack_value = stack[stack_pointer];
+			number block = 0;
+			while (program[program_pointer] != _(ENDIF)) {
+				if (program[program_pointer] == _(ELSE)) {
+					block = 1;
+				}
+				if (block == 0) {
+					// printf("running if %d ", stack_value);
+					if (stack_value == false) {
+						// printf("skiping %03x\n", program[program_pointer]);
+						program_pointer++;
+					} else {
+						// printf("running %03x\n", program[program_pointer + 1]);
+						parse_instruction();
+					}
+				}
+				if (block == 1) {
+					// printf("running else %d ", stack_value);
+					if (stack_value == false) {
+						// printf("running %03x\n", program[program_pointer + 1]);
+						parse_instruction();
+					} else {
+						// printf("skiping %03x\n", program[program_pointer]);
+						program_pointer++;
+					}
+				}
+			}
+		break;
+		case ELSE:
+		default:
+			break;
 	}
 }
 
@@ -134,7 +231,6 @@ void parse_instruction() {
 		push_to_stack(value);
 	} else if (type == 1) {
 		do_primitive(i);
-		printf("TOS: %d\n", stack[stack_pointer]);
 	} else {
 		printf("Unrecognized instruction \n");
 	}
@@ -143,20 +239,27 @@ void parse_instruction() {
 int main(void) {
 	// lexer should output an array of instructions
 	instruction example_program[PROG_SIZE] = {
-		2, get_instruction(DUP), get_instruction(ADD),
-		3, get_instruction(MOD),
-		4, get_instruction(SUB),
-		10, get_instruction(MUL),
-		5, get_instruction(DIV),
-		get_instruction(POP),
-		get_instruction(HALT)
+		2, 3, _(LT),
+		_(IF),
+			100,
+			200,
+		_(ELSE),
+			50,
+			25,
+		_(ENDIF),
+		_(ADD),
+
+		_(HALT)
 	};
 
+	// print core functions and its opcodes
+	print_core();
 	// Load example program to program memory
 	load_program(example_program);
 	print_program();
 
 	// RUNTIME
+	printf("EXECUTING:\n");
 	running = true;
 	while (running) {
 		parse_instruction();
