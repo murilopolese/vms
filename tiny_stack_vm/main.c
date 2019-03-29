@@ -241,13 +241,14 @@ int main(void) {
 	instruction example_program[PROG_SIZE] = {
 		2, 3, _(LT),
 		_(IF),
-			100,
 			200,
+			130,
+			_(ADD),
 		_(ELSE),
 			50,
-			25,
+			17,
+			_(SUB),
 		_(ENDIF),
-		_(ADD),
 
 		_(HALT)
 	};
