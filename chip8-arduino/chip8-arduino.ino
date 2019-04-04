@@ -7,7 +7,7 @@ typedef unsigned int address;
 // typedef enum { false, true } bool;
 
 unsigned long time = 0;
-unsigned char dt = 1;
+unsigned short dt = 1;
 number running = false;
 
 instruction memory[PROG_SIZE]; // memory
@@ -17,6 +17,11 @@ address call_stack[16];
 address pc = -1; // PC
 address mc; // I
 number sp;
+
+void print_log(String msg) {
+	// Serial.print("LOG: ");
+	// Serial.println(msg);
+}
 
 void parse_instruction() {
 	pc++;
@@ -29,12 +34,14 @@ void parse_instruction() {
 	unsigned int sum;
 	switch(op) {
 		case 0x0:
-			switch(op & 0x00FF) {
+			switch(value) {
 				case 0x00: // 0000 - Do nothing.
+					print_log("Do nothing");
 					break;
 				case 0xE0: // 00E0 - Clear the display.
 					break;
 				case 0xEE: // 00EE - Return from a subroutine.
+					print_log("Return from a subroutine");
 					// Go to the address on top of call stack
 					pc = call_stack[sp];
 					// "Pop" the call stack
@@ -43,14 +50,14 @@ void parse_instruction() {
 			}
 			break;
 		case 0x1: // 1nnn - Jump to location nnn.
+			print_log("Jump to location");
 			pc = addr;
-			// Next `parse_instruction` will increment `pc`
-			pc--;
 			break;
 		case 0x2: // 2nnn - Call subroutine at nnn.
-			value = instr;
+			print_log("Call subroutine");
 			sp++;
 			call_stack[sp] = pc;
+			pc = addr;
 			break;
 		case 0x3: // 3xkk - Skip next instruction if Vx = kk.
 			if (v[v1] == value) {
@@ -227,31 +234,43 @@ void load_program(instruction *p) {
 }
 
 void setup() {
-	instruction program[PROG_SIZE] = {
-		0x0000,// Do nothing
-
-		0xD0FF, // All lights on
-		0xD1FF,
-		0xD2FF,
-		0xD3FF,
-
-		0xD000, // All lights off
-		0xD100,
-		0xD200,
-		0xD300,
-
-		0x1000,
-
-		0xF000
-	};
-	load_program(program);
 	running = true;
+	Serial.begin(115200);
 }
 
+byte buffer[PROG_SIZE];
+instruction i_buffer = 0;
+unsigned short received;
+
 void loop() {
+	while (Serial.available() > 0) {
+		mc = 0;
+		pc = -1;
+		sp = 0;
+		running = true;
+
+		received = Serial.readBytes(buffer, PROG_SIZE);
+		Serial.print("Received ");
+		Serial.println(received);
+		Serial.print("Buffer ");
+		for (int i = 0; i < PROG_SIZE; i+=2) {
+			i_buffer = (buffer[i]<<8) | buffer[i+1];
+			memory[mc] = i_buffer;
+			Serial.print(i_buffer, HEX);
+			Serial.print(" ");
+			mc++;
+		}
+		Serial.println("");
+	}
+
 	if (running) {
 		time++;
 		if (time % dt == 0) {
+			// Serial.println("-");
+			// Serial.print("op: 0x");
+			// Serial.println(memory[pc+1], HEX);
+			// Serial.print("pc: ");
+			// Serial.println(pc+1);
 			parse_instruction();
 		}
 	}
