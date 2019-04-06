@@ -21,10 +21,13 @@
 Annn - Set I = nnn.
 Bnnn - Jump to location nnn + V0.
 Cxkk - Set Vx = random byte AND kk.
+
+// ARDUINO STUFF
 D0kk - Write kk to PORTB
 D1kk - Write kk to PORTC
 D2kk - Write kk to PORTD
 D3kk - Write kk to PORTF
+
 F000 - Halt.
 Fx07 - Set Vx = delay timer value.
 Fx0A - Wait for a key press, store the value of the key in Vx.
@@ -33,8 +36,15 @@ Fx18 - Set sound timer = Vx.
 Fx1E - Set I = I + Vx.
 Fx29 -  Set I = location of sprite for digit Vx.
 Fx33 - Store BCD representation of Vx in memory locations I, I+1, and I+2.
+
+// THIS IS THE OFFICIAL CHIP-8
 Fx55 - Store registers V0 through Vx in memory starting at location I.
 Fx65 - Read registers V0 through Vx in memory starting at location I.
-Ex9E -  Skip next instruction if key with the value of Vx is pressed.
-ExA1 -  Skip next instruction if key with the value of Vx is not pressed.
+// THIS IS MY VERSION
+Fx55 - Store register Vx in memory at location I.
+Fx65 - Read register Vx from value in memory at location I.
+
+
+Ex9E - Skip next instruction if key with the value of Vx is pressed.
+ExA1 - Skip next instruction if key with the value of Vx is not pressed.
 ```
