@@ -3,7 +3,9 @@ const fs = require('fs').promises
 const esprima = require('esprima')
 const debug = true
 
-// Those are just handy
+/*
+ * Those are just handy
+ */
 const hex = function (int) {
 	return `${int.toString(16).toUpperCase()}`
 }
@@ -15,33 +17,51 @@ const padHex = function (int, pad) {
 	}
 	return v
 }
-const inArray = function (item, array) {
-	return (array.indexOf(item) != -1) ? array.indexOf(item) : false
-}
 const indexOf = function (item, array) {
 	return array.indexOf(item)
 }
 const map = function (x, in_min, in_max, out_min, out_max) {
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 }
-function flatten(arr) {
+const flatten = function (arr) {
 	return arr.reduce(function (flat, toFlatten) {
 		return flat.concat(
 			Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten
 		)
 	}, []);
 }
+let concat = function(...arrays) {
+	return arrays.reduce(function (previous, current) {
+		return [].concat(previous, current)
+	})
+}
 
-// This is the program we are loading
-const memory = [];
+// This is the program we are loading.
+// Instructions will be loaded into this array in 3 steps:
+// 1) Process the syntax tree nodes and create an array of values and functions
+// to calculate relative values
+// 2) Calculate the relative values on program and subroutines
+// 3) Concatenate program, subroutines and default globalId values
+let program = [];
+let subroutines = [];
 
-// `memory_position`: The position in memory that is a offset plus the index
-// representing an item.
+// `memory_position`: The position in memory. This position can be a fixed point
+// in memory or an address that will be calculated later. Usually the values
+// calculated later refers to a globalId, globalCall, subroutine and can only
+// be calculated once all the syntax tree is processed.
+// [ program ][ subroutines ][ globalIds ]
 
-// Everytime code refers to global identifiers, it will load or write the value
-// to predefined `memory_position`, which may be used by an external process as
-// reference.
-const globalIds = []
+// Everytime code refers to identifiers, it will load or write the value
+// to a `memory_position`, which may be used by an external process as
+// reference. This values will be written after the program and subroutines.
+const globalIds = ['sine', 'triangle', 'square', 'pulse', 'rampdown', 'rampup']
+const globalIdsValues = [ 0, 1, 2, 3, 4, 5 ]
+
+// Subroutines are stored somewhere else then the memory until all the nodes
+// are processed. Once they are processed, the subroutines are concatenated
+// to the memory and all the
+
+
 // Every time code calls an expression that is a global call it will put the
 // arguments on the registers, call the op code. This opcode will likely to do
 // some calculation and if there is a result data it will be written to its
@@ -49,75 +69,84 @@ const globalIds = []
 const globalCalls = [
 	'leftEye', 'rightEye', 'leftMouth', 'rightMouth',
 	'leftArm', 'servo1', 'servo2',
-
 	'wave', 'leftArmTouched', 'hornTouched'
 ]
 
-// Every time code refers to an identifyier on the "left" side of a statement
-// and it's not a global and it's not a local id, append it to the local ids.
-// The local ids are also `memory_position` positions.
-const localIds = []
 
-// Check if an id is a global or local
-const isGlobal = function(id) {
-	return globalIds.indexOf(id) != -1
+// Calculate the `memory_position` of identifiers. To call this function, all
+// the program, including subroutines must be already loaded, so it can add the
+// correct offset (the program length + subroutines length) to those ids.
+const getIdAddress = function (id) {
+	let index = indexOf(id, globalIds)
+	if (index != -1) {
+		return program.length + subroutines.length + index
+	} else {
+		throw new Error(`Identifier '${id}' is not defined`)
+	}
 }
-const isLocal = function(id) {
-	return localIds.indexOf(id) != -1
-}
-
-const getGlobalIdAddress = function (index) {
-	return index
-}
-// Calculate the `memory_position` based on the size of global and local
-// ids based on the size of the description arrays
-const getGlobalCallAddress = function (index) {
-	return globalIds.length
-		+ index
-}
-// This is the last one and it grows indefinitely, maybe.
-const getLocalIdAddress = function (index) {
-	return globalIds.length
-		+ globalCalls.length
-		+ index
+// Calculate the `memory_position` of subroutines. To call this function, all
+// the program must be already loaded, so it can add the correct offset (the
+// program length) to those ids.
+const getSubroutineAddress = function (id) {
+	let index = indexOf(id, subroutineIds)
+	return program.length + index
 }
 
-// The following functions are a map to the opcodes
+/*
+ * The following functions will generate bytecodes or a function to be called
+ * to calculate that bytecode. Usually opcodes that takes registers and values
+ * will just return the bytecode while those that referes to a memory address
+ * must be calculated once all the program (and its nodes) are processed.
+ */
 const loadFloatToRegister = function (value, register) {
 	let v = parseInt(map(value, 0.0, 1.0, 0x00, 0xFF))
 	return loadValueToRegister(v, register)
 }
 const loadValueToRegister = function (value, register) {
 	if(debug) console.log(`load value 0x${hex(value)} to register 0x${hex(register)}`)
-	return [
-		`6${padHex(register, 1)}${padHex(value, 2)}`
-	]
+	return `6${padHex(register, 1)}${padHex(value, 2)}`
 }
-const loadValueToMemory = function (value, address) {
-	if(debug) console.log(`load value 0x${hex(value)} to memory address 0x${hex(address)}`)
+const loadValueToMemory = function (value, id) {
+	if(debug) console.log(`load value 0x${hex(value)} to memory address '${id}'`)
 	return [
-		`A${padHex(address, 3)}`, // Move I to address
+		function (i) {
+			let address = getIdAddress(id)
+			return `A${padHex(address, 3)}` // Move I to address
+		},
 		`6${padHex(0, 1)}${padHex(value, 2)}`, // Load value to register 0
 		`F${padHex(0, 1)}55` // Write value of register 0 to memory on address I
 	]
 }
-const loadRegisterToMemory = function (register, address) {
-	if(debug) console.log(`load value from register 0x${hex(register)} to address memory 0x${hex(address)}`)
+const loadRegisterToMemory = function (register, id) {
+	if(debug) console.log(`load value from register 0x${hex(register)} to memory address '${id}'`)
 	return [
-		`A${padHex(address, 3)}`, // Move I to address
+		function (i) {
+			let address = getIdAddress(id)
+			return `A${padHex(address, 3)}` // Move I to address
+		},
 		`F${padHex(register, 1)}55` // Write value of register to memory on address I
 	]
 }
-const loadMemoryToRegister = function (address, register) {
-	if(debug) console.log(`load value from memory address 0x${hex(address)} to register 0x${hex(register)}`)
+const loadMemoryToRegister = function (id, register) {
+	if(debug) console.log(`load value from memory address '${id}' to register 0x${padHex(register, 1)}`)
 	return [
-		`A${padHex(address, 3)}`, // Move I to address
+		function (i) {
+			let address = getIdAddress(id)
+			return `A${padHex(address, 3)}` // Move I to address
+		},
 		`F${padHex(register, 1)}65` // Load value from memory I to register
 	]
 }
+const goToSubroutine = function (id) {
+	if(debug) console.log(`go to subroutine on memory address '${id}'`)
+	return function (i) {
+		let address = getSubroutineAddress(id)
+		return `2${padHex(address, 3)}`
+	}
+}
 const callGlobal = function(name) {
 	if(debug) console.log(`call for global '${name}' (expects to write result to register 0x0)`)
-	return []
+	return [name]
 }
 
 // Tree node types
@@ -132,44 +161,22 @@ const AssignmentExpression = function (operator, left, right) {
 			rightHandCode = loadFloatToRegister(right.value, 0x0)
 			break
 		case 'Identifier':
-			if (isGlobal(right.name)) {
-				let memoryAddress = getGlobalIdAddress(
-					indexOf(right.name, globalIds)
-				)
-				rightHandCode = loadMemoryToRegister(memoryAddress, 0x0)
-			} else if (isLocal(right.name)) {
-				let memoryAddress = getLocalIdAddress(
-					indexOf(right.name, localIds)
-				)
-				rightHandCode = loadMemoryToRegister(memoryAddress, 0x0)
-			} else {
-				throw new Error(`Indentifier '${right.name}' is not defined.`)
-			}
+			rightHandCode = loadMemoryToRegister(right.name, 0x0)
 			break
 		case 'CallExpression':
 			rightHandCode = CallExpression(right.callee, right.arguments)
 			break
+		default:
+			throw new Error(`Can't assign this value.`)
 	}
 
 	// Now the left hand side is an address in memory we want to write whatever
 	// is on the first register!
-	let leftHandCode = []
-	let globalIndex = indexOf(left.name, globalIds)
-	let localIndex = indexOf(left.name, localIds)
-	if (isGlobal(left.name)) {
-		let memoryAddress = getGlobalIdAddress(globalIndex)
-		leftHandCode = loadRegisterToMemory(0x0, memoryAddress)
-	} else if (isLocal(left.name)) {
-		let memoryAddress = getLocalIdAddress(localIndex)
-		leftHandCode = loadRegisterToMemory(0x0, memoryAddress)
-	} else {
-		// Add value to local ids and set the value to the memory address
-		localIds.push(left.name)
-		localIndex = inArray(left.name, localIds)
-		let memoryAddress = getLocalIdAddress(localIndex)
-		leftHandCode = loadRegisterToMemory(0x0, memoryAddress)
+	if (indexOf(left.name, globalIds) === -1) {
+		globalIds.push(left.name)
 	}
-	return [rightHandCode, leftHandCode]
+	leftHandCode = loadRegisterToMemory(0x0, left.name)
+	return concat(rightHandCode, leftHandCode)
 }
 
 const CallExpression = function (callee, arguments) {
@@ -177,33 +184,15 @@ const CallExpression = function (callee, arguments) {
 	let code = []
 	arguments.forEach(function (arg, i) {
 		if (arg.type == 'Literal') {
-			code = code.concat(
-				loadFloatToRegister(arg.value, i)
-			)
+			code = concat(code, loadFloatToRegister(arg.value, i))
 		} else if (arg.type == 'Identifier') {
-			let globalIndex = inArray(arg.name, globalIds)
-			let localIndex = inArray(arg.name, localIds)
-			if (globalIndex !== false) {
-				let memoryAddress = getGlobalIdAddress(globalIndex)
-				code.concat(
-					loadMemoryToRegister(memoryAddress, i)
-				)
-			} else if (localIndex !== false) {
-				let memoryAddress = getLocalIdAddress(localIndex)
-				code.concat(
-					loadMemoryToRegister(memoryAddress, i)
-				)
-			} else {
-				throw new Error("This identifier can't be assigned.")
-			}
+			code = concat(code, loadMemoryToRegister(arg.name, i))
 		} else {
 			throw new Error("Can't use argument.")
 		}
 	})
 	// Assuming it will only call globals for now
-	code = code.concat(
-		callGlobal(callee.name)
-	)
+	code = concat(code, callGlobal(callee.name))
 	return code
 }
 
@@ -236,25 +225,45 @@ const getSyntaxTree = (codeString) => {
 	return esprima.parseScript(codeString)
 }
 
-
 const main = async function () {
 	// const codeString = await loadFile('quirkbot_factory.js')
 	const codeString = await loadFile('simple_test.js')
 	const ast = getSyntaxTree(codeString)
+	// Write down Abstract Syntax Tree
+	await fs.writeFile('ast.json', JSON.stringify(ast, null, 2))
 
 	console.log('======= PROCESSING NODES ===========')
 	let code = ast.body.map(processNode)
+	program = flatten(code)
+	// Iterate over program and subroutines and calculating relative addresses
+	const calculateBytecode = function (item) {
+		if (typeof item === 'function') {
+			return item()
+		} else {
+			return item
+		}
+	}
+	program = program.map(calculateBytecode)
+	subroutines = subroutines.map(calculateBytecode)
 
 	console.log('=========== INTERNALS ===============')
-	console.log('Local identifiers')
-	localIds.forEach(function(localId, i) {
-		console.log(` ${hex(getLocalIdAddress(i))}: '${localId}'`)
+	globalIds.forEach(function(id) {
+		let address = getIdAddress(id)
+		console.log(` 0x${padHex(address, 3)}: '${id}'`)
 	})
 
-	// Write down Abstract Syntax Tree
-	await fs.writeFile('ast.json', JSON.stringify(ast, null, 2))
-	// return array containint bytecodes
-	return flatten(code)
+	// Get an array with default global values and initialized memory with 0x0
+	// for variables without default value
+	let idValues = globalIds.map(function (id, i) {
+		if (globalIdsValues[i] !== undefined) {
+			return padHex(globalIdsValues[i], 4)
+		} else {
+			return padHex(0, 4)
+		}
+	})
+
+	// return array containing bytecodes
+	return flatten(concat(program, subroutines, idValues))
 }
 
 main().then(function (code) {
