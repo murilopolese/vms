@@ -221,7 +221,7 @@ void load_program(instruction *p) {
 
 int main() {
 	instruction example[PROG_SIZE] = {
-		0x60FA, 0x61CA, 0x62DA,
+		0x60FA, 0x61CA, 0x62DA
 		
 
 		,0xF000

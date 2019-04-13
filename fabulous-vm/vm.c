@@ -1,0 +1,205 @@
+#include <stdint.h>
+
+typedef enum { false, true } bool;
+typedef uint16_t instruction;
+typedef void (*operation)(instruction);
+typedef uint16_t operand; // 12 bits
+typedef uint16_t address; // 12 bits
+typedef uint8_t number;
+typedef uint8_t nibble; // 4 bits
+
+bool running = false;
+instruction memory[4096];
+number registers[16];
+address cs[16]; // call stack
+nibble cp = 0; // call stack pointer
+address pp = -1; // program pointer
+address mp = 0; // memory pointer
+
+// FUNCTION POINTERS
+operation op[16];
+operation regi_op[16];
+operation jumpif_op[16];
+
+// STACK OPERATIONS
+void push_address(address addr) {
+	cs[cp++] = addr;
+}
+
+address pop_address() {
+	cp -= 1;
+	return cs[cp];
+}
+
+// NO ARGUMENT OPERATIONS
+void do_nothing(operand o) {
+	// as it says
+}
+
+void halt(operand o) {
+	running = false;
+}
+
+void return_call(operand o) {
+	pp = pop_address();
+}
+
+// ADDRESS OPERATIONS
+void jump_to(operand o) {
+	pp = o - 1;
+}
+
+void call_subroutine(operand o) {
+	push_address(pp);
+	jump_to(o);
+}
+
+void set_memory_pointer(operand o) {
+	mp = o;
+}
+
+// VALUE OPERATION
+void load_value_to_register(operand o) {
+	number value = o & 0x0FF;
+	nibble regi = o >> 8;
+	registers[regi] = value;
+}
+
+
+void add_value_to_register(operand o) {
+	number value = o & 0x0FF;
+	nibble regi = o >> 8;
+	number miss = 255 - registers[regi];
+	if (value > miss) {
+		registers[0xF] = 1;
+	} else {
+		registers[0xF] = 0;
+	}
+	registers[regi] = registers[regi] + value;
+}
+
+void sub_value_to_register(operand o) {
+	number value = o & 0x0FF;
+	nibble regi = o>> 8;
+	if (value > registers[regi]) {
+		registers[0xF] = 1;
+	} else {
+		registers[0xF] = 0;
+	}
+	registers[regi] = registers[regi] - value;
+}
+
+// SINGLE REGISTER OPERATION
+void load_register_to_memory(operand o) {
+	nibble regi = o >> 8;
+	memory[mp] = registers[regi];
+}
+
+// TWO REGISTERS OPERATIONS
+void load_memory_to_register(operand o) {
+	nibble regi = (o >> 4) & 0x0F;
+	registers[regi] = memory[mp];
+}
+
+void load_register_to_register(operand o) {
+	nibble regi1 = (o >> 4) & 0x0F;
+	nibble regi2 = o & 0x00F;;
+	registers[regi1] = registers[regi2];
+}
+
+void or_registers(operand o) {
+	nibble regi1 = (o >> 4) & 0x0F;
+	nibble regi2 = o & 0x00F;
+	registers[regi1] = registers[regi1] |
+			   registers[regi2];
+}
+
+void and_registers(operand o) {
+	nibble regi1 = (o >> 4) & 0x0F;
+	nibble regi2 = o & 0x00F;
+	registers[regi1] = registers[regi1] &
+			   registers[regi2];
+}
+
+void xor_registers(operand o) {
+	nibble regi1 = (o >> 4) & 0x0F;
+	nibble regi2 = o & 0x00F;
+	registers[regi1] = registers[regi1] ^
+			   registers[regi2];
+
+}
+
+void register_operations(operand o) {
+	nibble opi = o >> 8;
+	regi_op[opi](o);
+}
+
+void jump_if_equal(operand o) {
+	nibble regi1 = (o >> 4) & 0x0F;
+	nibble regi2 = o & 0x00F;
+	if (registers[regi1] == registers[regi2]) {
+		pp += 1;
+	}
+}
+
+void jump_if_not_equal(operand o) {
+	nibble regi1 = (o >> 4) & 0x0F;
+	nibble regi2 = o & 0x00F;
+	if (registers[regi1] != registers[regi2]) {
+		pp += 1;
+	}
+}
+
+void jump_if_lesser(operand o) {
+	nibble regi1 = (o >> 4) & 0x0F;
+	nibble regi2 = o & 0x00F;
+	if (registers[regi1] < registers[regi2]) {
+		pp += 1;
+	}
+
+}
+
+void jump_if_greater(operand o) {
+	nibble regi1 = (o >> 4) & 0x0F;
+	nibble regi2 = o & 0x00F;
+	if (registers[regi1] > registers[regi2]) {
+		pp += 1;
+	}
+
+}
+
+void conditional_jumps(operand o) {
+	nibble opi = o >> 8;
+	jumpif_op[opi](o);
+}
+
+// EXECUTE NEXT INSTRUCTION
+void execute_next_instruction() {
+	pp += 1;
+	instruction instr = memory[pp];
+	nibble opi = instr << 12;
+	operand o = instr | 0x0FFF;
+	op[opi](o);
+}
+
+void init_vm() {
+	for (int i = 0; i < 16; i++) {
+		op[i] = do_nothing;
+	}
+
+	op[0x1] = halt;
+	op[0x2] = return_call;
+
+	op[0x3] = jump_to;
+	op[0x4] = call_subroutine;
+	op[0x5] = set_memory_pointer;
+	
+	op[0x6] = load_value_to_register;
+	op[0x7] = add_value_to_register;
+	op[0x8] = sub_value_to_register;
+	
+	op[0x9] = register_operations;
+	op[0xA] = conditional_jumps;
+
+	memory[0] = 0x1000;
+}
