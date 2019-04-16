@@ -1,25 +1,5 @@
 #include <stdint.h>
-
-typedef enum { false, true } bool;
-typedef uint16_t instruction;
-typedef void (*operation)(instruction);
-typedef uint16_t operand; // 12 bits
-typedef uint16_t address; // 12 bits
-typedef uint8_t number;
-typedef uint8_t nibble; // 4 bits
-
-bool running = false;
-instruction memory[4096];
-number registers[16];
-address cs[16]; // call stack
-nibble cp = 0; // call stack pointer
-address pp = -1; // program pointer
-address mp = 0; // memory pointer
-
-// FUNCTION POINTERS
-operation op[16];
-operation regi_op[16];
-operation jumpif_op[16];
+#include "vm.h"
 
 // STACK OPERATIONS
 void push_address(address addr) {
@@ -174,19 +154,33 @@ void conditional_jumps(operand o) {
 }
 
 // EXECUTE NEXT INSTRUCTION
-void execute_next_instruction() {
-	pp += 1;
-	instruction instr = memory[pp];
-	nibble opi = instr << 12;
-	operand o = instr | 0x0FFF;
+void execute_instruction(instruction instr) {
+	nibble opi = instr >> 12;
+	operand o = instr & 0x0FFF;
 	op[opi](o);
 }
 
-void init_vm() {
-	for (int i = 0; i < 16; i++) {
-		op[i] = do_nothing;
-	}
+void execute_next_instruction() {
+	pp += 1;
+	instruction instr = memory[pp];
+	execute_instruction(instr);
+}
 
+void init_vm() {
+	running = false;
+	pp = -1;
+	mp = 0;
+	cp = 0;
+	for (short i = 0; i < 16; i++) {
+		registers[i] = 0;
+		cs[i] = 0;
+		op[i] = do_nothing;;
+		regi_op[i] = 0;
+		jumpif_op[i] = 0;
+	}
+	for (short i = 0; i < 4096; i++) {
+		memory[i] = 0;
+	}
 	op[0x1] = halt;
 	op[0x2] = return_call;
 
@@ -200,6 +194,4 @@ void init_vm() {
 	
 	op[0x9] = register_operations;
 	op[0xA] = conditional_jumps;
-
-	memory[0] = 0x1000;
 }
