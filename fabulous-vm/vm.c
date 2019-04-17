@@ -1,7 +1,9 @@
 #include <stdint.h>
 
-#define MEM_SIZE 56
+#define MEM_SIZE 56 // Total memory size
+#define CALL_STACK_SIZE 16 // How many nested calls can the VM make
 
+// VM TYPES DEFINITIONS
 typedef enum { false, true } bool;
 typedef uint16_t instruction;
 typedef void (*operation)(instruction);
@@ -10,20 +12,37 @@ typedef uint16_t address; // 12 bits
 typedef uint8_t number;
 typedef uint8_t nibble; // 4 bits
 
-bool running;
+// VM STATES
+// Flags if program is currently running
+bool running = false;
+// Total amount of memory the VM has access to. Because the type address is
+// 12 bits long, the maximum size is 4096
 instruction memory[MEM_SIZE];
+// Registers ids are 1 nibble long from 0x0 to 0xF
 number registers[16];
-address cs[16]; // call stack
-nibble cp; // call stack pointer
-address pp; // program pointer
-address mp; // memory pointer
+// call stack will keep address so program knows where to return
+address cs[CALL_STACK_SIZE];
+// call stack pointer will point to the "top" of the stack. The "top" is always
+// pointing to the position above the last item on the stack. For example if
+// there are 2 items on the stack (cs[0] and cs[1]), the `cp` will be 2.
+nibble cp;
+
+// The program pointer indicates what is the address on the memory that should
+// be executed by the VM as an instruction. This value will be incremented
+// before running the next instruction.
+address pp;
+// The memory pointer indicates a memory address to load or read values.
+address mp;
 
 // FUNCTION POINTERS
+// Array of function pointers for "core operations"
 operation op[16];
+// Array of function pointers for "register operations"
 operation regi_op[16];
+// Array of function pointers for "conditional jumps"
 operation jumpif_op[16];
 
-// STACK OPERATIONS
+// CALL STACK OPERATIONS
 void push_address(address addr) {
 	cs[cp++] = addr;
 }
@@ -67,7 +86,6 @@ void load_value_to_register(operand o) {
 	registers[regi] = value;
 }
 
-
 void add_value_to_register(operand o) {
 	number value = o & 0x0FF;
 	nibble regi = o >> 8;
@@ -82,7 +100,7 @@ void add_value_to_register(operand o) {
 
 void sub_value_to_register(operand o) {
 	number value = o & 0x0FF;
-	nibble regi = o>> 8;
+	nibble regi = o >> 8;
 	if (value > registers[regi]) {
 		registers[0xF] = 1;
 	} else {
@@ -97,12 +115,12 @@ void load_register_to_memory(operand o) {
 	memory[mp] = registers[regi];
 }
 
-// TWO REGISTERS OPERATIONS
 void load_memory_to_register(operand o) {
 	nibble regi = (o >> 4) & 0x0F;
 	registers[regi] = memory[mp];
 }
 
+// TWO REGISTERS OPERATIONS
 void load_register_to_register(operand o) {
 	nibble regi1 = (o >> 4) & 0x0F;
 	nibble regi2 = o & 0x00F;;
@@ -199,17 +217,31 @@ void init_vm() {
 	cp = 0;
 	for (short i = 0; i < 16; i++) {
 		registers[i] = 0;
-		cs[i] = 0;
 		op[i] = do_nothing;;
 		regi_op[i] = 0;
 		jumpif_op[i] = 0;
 	}
+	for (short i = 0; i < CALL_STACK_SIZE; i++) {
+		cs[i] = 0;
+	}
 	for (short i = 0; i < MEM_SIZE; i++) {
 		memory[i] = 0;
 	}
+
+	regi_op[ 0x0 ] = load_register_to_memory;
+	regi_op[ 0x1 ] = load_memory_to_register;
+	regi_op[ 0x2 ] = load_register_to_register;
+	regi_op[ 0x3 ] = or_registers;
+	regi_op[ 0x4 ] = and_registers;
+	regi_op[ 0x5 ] = xor_registers;
+
+	jumpif_op[ 0x0 ] = jump_if_equal;
+	jumpif_op[ 0x1 ] = jump_if_not_equal;
+	jumpif_op[ 0x2 ] = jump_if_lesser;
+	jumpif_op[ 0x3 ] = jump_if_greater;
+
 	op[ 0x1 ] = halt;
 	op[ 0x2 ] = return_call;
-
 	op[ 0x3 ] = jump_to;
 	op[ 0x4 ] = call_subroutine;
 	op[ 0x5 ] = set_memory_pointer;
