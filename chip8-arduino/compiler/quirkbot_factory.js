@@ -1,9 +1,3 @@
-offset = 0.5
-if (leftArmTouched()) {
-} else {
-  offset = 0
-}
-
 blinkFast1 = wave(
 	0, // type
 	0.1, // length

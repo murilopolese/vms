@@ -1,0 +1,22 @@
+{
+  "name": "compiler",
+  "version": "0.1.0",
+  "description": "This is a compiler that will take a subset of JavaScript, parse into an Abstract Syntax Tree and feed into a code generator that will output bytecode.",
+  "main": "main.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "Murilo Polese <murilopolese@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "escodegen": "^1.11.1",
+    "esprima": "^4.0.1",
+    "estraverse": "^4.2.0"
+  },
+  "devDependencies": {
+    "mocha": "^6.1.2"
+  }
+}
