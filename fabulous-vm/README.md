@@ -31,10 +31,12 @@ The instructions that come built in are:
 0x8Xkk Subtract value kk from register x, set register 0xF to 0x01 if result is smaller than 0
 0x90X0 Load register x to memory at the memory pointer
 0x91X0 Load the value on the memory at the memory pointer to register x
-0x92XY Sets register Y = X
-0x93XY Sets register Y = Y | X
-0x94XY Sets register Y = Y & X
-0x95XY Sets register Y = Y ^ X
+0x92XY Sets register X = Y
+0x93XY Sets register X = X | Y
+0x94XY Sets register X = X & Y
+0x95XY Sets register X = X ^ Y
+0x96XY Sets register X = X + Y
+0x97XY Sets register X = X - Y
 0xA0XY Skip next instruction if register X == Y
 0xA1XY Skip next instruction if register X != Y
 0xA2XY Skip next instruction if register X < Y

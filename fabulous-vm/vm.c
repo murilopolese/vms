@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 
 #define MEM_SIZE 56 // Total memory size
 #define CALL_STACK_SIZE 16 // How many nested calls can the VM make
@@ -130,23 +131,32 @@ void load_register_to_register(operand o) {
 void or_registers(operand o) {
 	nibble regi1 = (o >> 4) & 0x0F;
 	nibble regi2 = o & 0x00F;
-	registers[regi1] = registers[regi1] |
-			   registers[regi2];
+	registers[regi1] = registers[regi1] | registers[regi2];
 }
 
 void and_registers(operand o) {
 	nibble regi1 = (o >> 4) & 0x0F;
 	nibble regi2 = o & 0x00F;
-	registers[regi1] = registers[regi1] &
-			   registers[regi2];
+	registers[regi1] = registers[regi1] & registers[regi2];
 }
 
 void xor_registers(operand o) {
 	nibble regi1 = (o >> 4) & 0x0F;
 	nibble regi2 = o & 0x00F;
-	registers[regi1] = registers[regi1] ^
-			   registers[regi2];
+	registers[regi1] = registers[regi1] ^ registers[regi2];
 
+}
+
+void add_registers(operand o) {
+	nibble regi1 = (o >> 4) & 0x0F;
+	nibble regi2 = o & 0x00F;
+	registers[regi1] = registers[regi1] + registers[regi2];
+}
+
+void subtract_registers(operand o) {
+	nibble regi1 = (o >> 4) & 0x0F;
+	nibble regi2 = o & 0x00F;
+	registers[regi1] = registers[regi1] - registers[regi2];
 }
 
 void register_operations(operand o) {
@@ -195,6 +205,7 @@ void conditional_jumps(operand o) {
 
 // EXECUTE NEXT INSTRUCTION
 void execute_instruction(instruction instr) {
+	printf("Executing instruction 0x%04x\n", instr);
 	nibble opi = instr >> 12;
 	operand o = instr & 0x0FFF;
 	op[opi](o);
@@ -228,13 +239,6 @@ void init_vm() {
 		memory[i] = 0;
 	}
 
-	regi_op[ 0x0 ] = load_register_to_memory;
-	regi_op[ 0x1 ] = load_memory_to_register;
-	regi_op[ 0x2 ] = load_register_to_register;
-	regi_op[ 0x3 ] = or_registers;
-	regi_op[ 0x4 ] = and_registers;
-	regi_op[ 0x5 ] = xor_registers;
-
 	jumpif_op[ 0x0 ] = jump_if_equal;
 	jumpif_op[ 0x1 ] = jump_if_not_equal;
 	jumpif_op[ 0x2 ] = jump_if_lesser;
@@ -246,10 +250,18 @@ void init_vm() {
 	op[ 0x4 ] = call_subroutine;
 	op[ 0x5 ] = set_memory_pointer;
 
+	op[ 0x9 ] = register_operations;
+	regi_op[ 0x0 ] = load_register_to_memory;
+	regi_op[ 0x1 ] = load_memory_to_register;
+	regi_op[ 0x2 ] = load_register_to_register;
+	regi_op[ 0x3 ] = or_registers;
+	regi_op[ 0x4 ] = and_registers;
+	regi_op[ 0x5 ] = xor_registers;
+	regi_op[ 0x6 ] = add_registers;
+	regi_op[ 0x7 ] = subtract_registers;
+
+	op[ 0xA ] = conditional_jumps;
 	op[ 0x6 ] = load_value_to_register;
 	op[ 0x7 ] = add_value_to_register;
 	op[ 0x8 ] = sub_value_to_register;
-
-	op[ 0x9 ] = register_operations;
-	op[ 0xA ] = conditional_jumps;
 }
