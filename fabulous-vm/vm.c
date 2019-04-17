@@ -1,5 +1,27 @@
 #include <stdint.h>
-#include "vm.h"
+
+#define MEM_SIZE 56
+
+typedef enum { false, true } bool;
+typedef uint16_t instruction;
+typedef void (*operation)(instruction);
+typedef uint16_t operand; // 12 bits
+typedef uint16_t address; // 12 bits
+typedef uint8_t number;
+typedef uint8_t nibble; // 4 bits
+
+bool running;
+instruction memory[MEM_SIZE];
+number registers[16];
+address cs[16]; // call stack
+nibble cp; // call stack pointer
+address pp; // program pointer
+address mp; // memory pointer
+
+// FUNCTION POINTERS
+operation op[16];
+operation regi_op[16];
+operation jumpif_op[16];
 
 // STACK OPERATIONS
 void push_address(address addr) {
@@ -162,8 +184,12 @@ void execute_instruction(instruction instr) {
 
 void execute_next_instruction() {
 	pp += 1;
-	instruction instr = memory[pp];
-	execute_instruction(instr);
+	if (pp >= MEM_SIZE) {
+		running = false;
+	} else {
+		instruction instr = memory[ pp ];
+		execute_instruction(instr);
+	}
 }
 
 void init_vm() {
@@ -178,20 +204,20 @@ void init_vm() {
 		regi_op[i] = 0;
 		jumpif_op[i] = 0;
 	}
-	for (short i = 0; i < 4096; i++) {
+	for (short i = 0; i < MEM_SIZE; i++) {
 		memory[i] = 0;
 	}
-	op[0x1] = halt;
-	op[0x2] = return_call;
+	op[ 0x1 ] = halt;
+	op[ 0x2 ] = return_call;
 
-	op[0x3] = jump_to;
-	op[0x4] = call_subroutine;
-	op[0x5] = set_memory_pointer;
-	
-	op[0x6] = load_value_to_register;
-	op[0x7] = add_value_to_register;
-	op[0x8] = sub_value_to_register;
-	
-	op[0x9] = register_operations;
-	op[0xA] = conditional_jumps;
+	op[ 0x3 ] = jump_to;
+	op[ 0x4 ] = call_subroutine;
+	op[ 0x5 ] = set_memory_pointer;
+
+	op[ 0x6 ] = load_value_to_register;
+	op[ 0x7 ] = add_value_to_register;
+	op[ 0x8 ] = sub_value_to_register;
+
+	op[ 0x9 ] = register_operations;
+	op[ 0xA ] = conditional_jumps;
 }
