@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<title>Fabulous Quirkbot</title>
+</head>
+<body>
+<h1>Fabulous Quirkbot</h1>
+<form>
+	<div>
+		<label for="le">Left Eye</label>
+		<input type="range" min="0" max="255" value="0" id="le" name="le">
+	</div>
+	<div>
+		<label for="re">Right Eye</label>
+		<input type="range" min="0" max="255" value="0" id="re" name="re">
+	</div>
+	<div>
+		<label for="lm">Left Mouth</label>
+		<input type="range" min="0" max="255" value="0" id="lm" name="lm">
+	</div>
+	<div>
+		<label for="rm">Right Mouth</label>
+		<input type="range" min="0" max="255" value="0" id="rm" name="rm">
+	</div>
+	<div>
+		<label for="hf">Horn Front</label>
+		<input type="range" min="0" max="255" value="0" id="hf" name="hf">
+	</div>
+	<div>
+		<label for="hb">Horn Back</label>
+		<input type="range" min="0" max="255" value="0" id="hb" name="hb">
+	</div>
+</form>
+<script src="/socket.io/socket.io.js"></script>
+<script type="text/javascript">
+const MEM_SIZE = 256;
+const OFFSET = MEM_SIZE - 26 - 1;
+const qb_pins = {
+	'LE': 4,
+	'RE': 20,
+	'LM': 15,
+	'RM': 0,
+	'HF': 9,
+	'HB': 23,
+
+	'LLF': 0,
+	'LLB': 0,
+	'RLF': 0,
+	'RLB': 0,
+	'LAF': 0,
+	'LAB': 0,
+	'RAF': 0,
+	'RAB': 0
+}
+function pwm(pin, value) {
+	return [
+		0x61, value, // Load value to R1
+		0x50, OFFSET + 1 + qb_pins[pin], // Move memory pointer
+		0x90, 0x10 // Write R1 to memory
+	]
+}
+function halt() {
+	return [
+		0x10, 0x00 // Halt
+	]
+}
+function update() {
+	return [
+		0x60, 0x01, // Load value to R0
+		0x50, OFFSET, // Move memory pointer to offset
+		0x90, 0x00, // Write R0 to memory
+	]
+}
+var socket = io()
+let le = document.querySelector('input[name=le]')
+let re = document.querySelector('input[name=re]')
+let lm = document.querySelector('input[name=lm]')
+let rm = document.querySelector('input[name=rm]')
+let hf = document.querySelector('input[name=hf]')
+let hb = document.querySelector('input[name=hb]')
+
+let updatePwm = function(e) {
+	console.log(
+		'update pwm',
+		le.value, re.value, lm.value, rm.value, hf.value, hb.value
+	)
+	let program = []
+	program = program.concat( pwm('LE', parseInt(le.value)) )
+	program = program.concat( pwm('RE', parseInt(re.value)) )
+	program = program.concat( pwm('LM', parseInt(lm.value)) )
+	program = program.concat( pwm('RM', parseInt(rm.value)) )
+	program = program.concat( pwm('HF', parseInt(hf.value)) )
+	program = program.concat( pwm('HB', parseInt(hb.value)) )
+	program = program.concat( update() )
+	program = program.concat( halt() )
+	socket.emit('event', program)
+}
+le.oninput = updatePwm
+re.oninput = updatePwm
+lm.oninput = updatePwm
+rm.oninput = updatePwm
+hf.oninput = updatePwm
+hb.oninput = updatePwm
+</script>
+</body>
+</html>
