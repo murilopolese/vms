@@ -11,7 +11,7 @@ let debounce = null;
 io.on('connection', client => {
 	console.log('client connected')
 	client.on('event', function(data) {
-		console.log('event', data.map(i => i.toString(16)))
+		console.log('event', data.map(i => i.toString(16)).join(' ') )
 		if (debounce == null) {
 			clearTimeout(debounce)
 		}
