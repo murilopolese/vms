@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+	<head>
+		<meta charset="utf-8">
+		<title>Fabulous VM</title>
+		<link rel="stylesheet" href="main.css">
+	</head>
+	<body>
+		<div class="container">
+			<div class="col">
+				<div id="operations">
+					<form onsubmit="return false;">
+						<fieldset>
+							<button onclick="handleExecuteInstruction()">Execute instruction</button>
+							<button onclick="handleRun()">Run</button>
+							<button onclick="handleStop()">Stop</button>
+							<button onclick="handleReset()">Reset</button>
+							<input type="range" min="1" max="1000" onchange="handleSpeedChange(this)" />
+							<p><em>to and from Register 0x0:</em></p>
+							<button onclick="handleSetProgramPointer()">Set program pointer</button>
+							<button onclick="handleSetMemoryPointer()">Set memory pointer</button>
+							<button onclick="handleLoadFromMemory()">Load from memory</button>
+							<button onclick="handleWriteToMemory()">Write to memory</button>
+							<button onclick="handleSetStackPointer()">Set stack pointer</button>
+							<button onclick="handlePush()">Push</button>
+							<button onclick="handlePop()">Pop</button>
+						</fieldset>
+						<fieldset>
+							<p><em>(Register 0x1 -> operation -> Register 0x2 and store results on Register 0x1)</em></p>
+							<button onclick="handleAdd()">+</button>
+							<button onclick="handleSubtract()">-</button>
+							<button onclick="handleMultiply()">*</button>
+							<button onclick="handleDivide()">/</button>
+							<button onclick="handleGreaterThan()">></button>
+							<button onclick="handleLesserThan()"><</button>
+							<button onclick="handleEquals()">==</button>
+							<button onclick="handleNot()">!</button>
+							<button onclick="handleAnd()">&&</button>
+							<button onclick="handleOr()">||</button>
+							<button onclick="handleXor()">^</button>
+							<button onclick="handleBitwiseAnd()">&</button>
+							<button onclick="handleBitwiseOr()">|</button>
+							<button onclick="handleBitshiftRight()">>></button>
+							<button onclick="handleBitshiftLeft()"><<</button>
+							<button onclick="handleEqualsZero()">=0</button>
+							<button onclick="handleGreaterThanZero()">>0</button>
+							<button onclick="handleLesserThanZero()"><0</button>
+						</fieldset>
+						<fieldset>
+							<input type="text" name="value" placeholder="value (0x00)">
+							<input type="text" name="register" placeholder="register (0x0)">
+							<button onclick="handleLoadValueToRegister()">Load value into register</button>
+						</fieldset>
+						<fieldset>
+							<input type="text" name="register_from" placeholder="from (0x0)">
+							<input type="text" name="register_to" placeholder="to (0x0)">
+							<button onclick="handleLoadRegisterToRegister()">Load register into register</button>
+						</fieldset>
+						<fieldset>
+							<textarea name="program" rows="8" cols="80"></textarea>
+							<button onclick="handleLoadProgram()">Load program</button>
+						</fieldset>
+					</form>
+				</div>
+			</div>
+			<div class="col">
+				<div id="panel"></div>
+			</div>
+		</div>
+		<script type="text/javascript" src="vm.js"></script>
+		<script type="text/javascript" src="main.js"></script>
+	</body>
+</html>

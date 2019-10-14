@@ -1,0 +1,39 @@
+body, button, textarea, input, code {
+	margin: 0;
+	font-family: monospace;
+	font-size: 14px;
+	background: navy;
+	color: wheat;
+	font-weight: bold;
+}
+
+p {
+	margin: 0.5rem 0
+}
+
+code {
+	color: aqua;
+}
+
+button, input {
+	padding: 0.5rem;
+	margin: 0.2rem 0;
+}
+
+form p {
+	color: yellow;
+}
+
+.container {
+	display: flex;
+	flex-direction: row;
+}
+
+.container .col {
+	padding: 1rem;
+}
+
+.active {
+	background: yellow;
+	color: navy;
+}
