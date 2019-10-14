@@ -67,6 +67,21 @@ const renderPanel = function(state) {
 `
 }
 
+const renderPixel = function(value, index) {
+	return `<div class="pixel value-${value}"> </div>`
+}
+const renderScreen = function(state) {
+	let s = state.memory[0].toString(2)
+	while (s.length < 16) {
+		s = `0${s}`
+	}
+	return `
+	<div class="screen">
+		${s.split('').map(renderPixel).join('')}
+	</div>
+	`
+}
+
 // Handle CPU Operations
 const handleExecuteInstruction = function() {
 	state = executeInstruction(state)
@@ -229,93 +244,23 @@ const handleReset = function() {
 // Rendering panel
 const render = function() {
 	let panel = document.querySelector('#panel')
-	panel.innerHTML = renderPanel(state)
+	panel.innerHTML = renderScreen(state)
+	panel.innerHTML += renderPanel(state)
 }
 const program =
-`LOAD_VAL_REG 0x0 0x0
-LOAD_VAL_REG 0x1 0x1
-LOAD_VAL_REG 0x4 0x2
-ADD
-PUSH
-LOAD_REG_REG 0x2 0x1
-SUBTRACT
-LT0
-JUMP_IF
-SET_PP 0xb
-POP
-SET_PP 0x0
-LOAD_VAL_REG 0x69 0x0
+`LOAD_VAL_REG 0x90 0x0
+LOAD_VAL_REG 0x8 0x1
+SHIFTLEFT
+LOAD_VAL_REG 0x96 0x1
+BITOR
+SET_MP 0x0
 WRITE_MEM
 HALT`
 
-const chaser =
-`LOAD_VAL_REG 0x1 0x0
-SET_MP 0x0
-WRITE_MEM
-SET_PP 0x12
-# Shift left === 0x4
-SET_MP 0x0
-LOAD_MEM
-LOAD_VAL_REG 0x4 0x1
-SHIFTLEFT
-WRITE_MEM
-RETURN
-# Shift right === 0xb
-SET_MP 0x0
-LOAD_MEM
-LOAD_VAL_REG 0x4 0x1
-SHIFTRIGHT
-WRITE_MEM
-RETURN
-# shift left 4 times === 0x12
-GO_SUB 0x4
-SET_MP 0x1
-LOAD_MEM
-LOAD_VAL_REG 0x1 0x1
-ADD
-WRITE_MEM
-LOAD_VAL_REG 0x5 0x1
-SUBTRACT
-EQUALS0
-JUMP_IF
-SET_PP 0x12
-LOAD_VAL_REG 0x0 0x0
-SET_MP 0x1
-WRITE_MEM
-# shift right 4 times === 0x21
-GO_SUB 0xb
-SET_MP 0x1
-LOAD_MEM
-LOAD_VAL_REG 0x1 0x1
-ADD
-WRITE_MEM
-LOAD_VAL_REG 0x5 0x1
-SUBTRACT
-EQUALS0
-JUMP_IF
-SET_PP 0x21
-LOAD_VAL_REG 0x0 0x0
-SET_MP 0x1
-WRITE_MEM
-SET_PP 0x12
-`
-
-const example_gosub =
-`SET_PP 0x7
-# YOLO + 1
-LOAD_VAL_REG 0x1 0x1
-SET_MP 0x0
-LOAD_MEM
-ADD
-WRITE_MEM
-RETURN
-GO_SUB 0x1
-SET_PP 0x7
-`
 
 window.onload = function() {
 	let codeInput = document.querySelector('textarea[name=program]')
-	codeInput.innerHTML = chaser
+	codeInput.innerHTML = program
 	state = getCleanState()
 	render(state)
 }

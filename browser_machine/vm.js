@@ -224,6 +224,28 @@ operations[JUMP_IF] = jump_if
 operations[GO_SUB] = go_sub
 operations[RETURN] = return_from_sub
 
+const getCleanState = function() {
+	let program = new Array(56)
+	let programPointer = 0x0000
+	let memory = new Array(8)
+	let memoryPointer = 0x0000
+	let stack = new Array(8)
+	let stackPointer = 0x0000
+	let registers = [0x0000, 0x0000]
+	for (let i = 0; i < program.length; i++) {
+		program[i] = 0x0000
+	}
+	for (let i = 0; i < memory.length; i++) {
+		memory[i] = 0x0000
+	}
+	for (let i = 0; i < stack.length; i++) {
+		stack[i] = 0x0000
+	}
+	return {
+		program, programPointer, memory, memoryPointer,
+		stack, stackPointer, registers
+	}
+}
 const executeInstruction = function(state) {
 	let instruction = state.program[state.programPointer]
 	let operator = instruction >> 16
