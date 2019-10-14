@@ -1,0 +1,12 @@
+// Sum of all numbers to 10: Result on register 0x0
+
+6000 // 0x000 Load value 0x00 to R0
+610A // 0x001 Load value 0x0A to R1
+6200 // 0x002 Load value 0x00 to R2
+4007 // 0x003 Call subroutinte at address 0x007 (after halt)
+A012 // 0x004 Skip next instruction if R1 = R2 (R2 is 0x00)
+3003 // 0x005 Jump to 2 address before
+1000 // 0x006 Halt
+9601 // 0x007 R0 = R0 + R1
+8101 // 0x008 R1 = R1 - 1
+2000 // 0x009 Return
