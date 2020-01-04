@@ -1,0 +1,745 @@
+
+<!-- saved from url=(0073)https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/documentation.html -->
+<html><!-- created 13.6.2006 by Peter Mawhorter  --><!-- layout and content extensively borrowed from http://www.cs.hmc.edu/~keller/isc as of 13.6.2006, which was written by Robert Keller of the computer science department at Harvey Mudd College --><!-- extensively revised on 7.10.2007 by Geoff Kuenning --><!-- additional revisions on 6.18.2012 by Kaya Woodall --><!-- revised on 2.22.2018 by Geoff Kuenning -->
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+	<title>HMMM Documentation</title>
+	<link rel="stylesheet" href="./HMMM Documentation_files/documentation-plain.css">
+	<style media="screen">
+		/* documentation-plain.css
+			 css stylesheet for documentation.html
+			 created 15.6.2006 by Peter Mawhorter
+		*/
+
+		/* IE browser hack because IE doesn't support partial transparency*/
+		#logo {
+			display: none;
+		}
+
+		#to_top {
+			display: none;
+		}
+
+		a:visited {
+			color: #0000ff;
+		}
+	</style>
+</head>
+
+<body>
+
+<span id="to_top">
+<center>
+<a id="top_link" href="https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/documentation.html#Top">[top]</a>
+</center>
+</span>
+
+<center>
+<h2>
+  <a name="Top">Documentation for HMMM</a>
+<br>
+(Harvey Mudd Miniature Machine)
+</h2>
+<h4>
+Last updated fall, 2019
+</h4>
+
+<h3>Quick reference: Table of Hmmm Instructions</h3>
+<br>
+
+<table align="center" border="1" style="font-family:monospace;">
+<tbody><tr><th>Instruction&nbsp;&nbsp;&nbsp;&nbsp;</th><th align="left">Description</th>
+<th>Aliases</th></tr>
+
+<tr><td colspan="3" align="center" style="font-family:serif; font-size:150%;"><b><font color="darkred">System instructions</font></b></td></tr>
+
+<tr>
+<td><b>halt</b></td>
+<td>Stop!</td>
+<td><font color="white">None</font></td>
+</tr>
+<tr>
+<td><b>read</b> rX</td>
+<td>Place user input in register rX</td>
+<td><font color="white">None</font></td>
+</tr>
+<tr>
+<td><b>write</b> rX</td>
+<td>Print contents of register rX</td>
+<td><font color="white">None</font></td>
+</tr>
+<tr>
+<td><b>nop</b></td>
+<td>Do nothing</td>
+<td><font color="white">None</font></td>
+</tr>
+
+<tr><td colspan="3" align="center" style="font-family:serif; font-size:150%;"><b><font color="darkred">Setting register data</font></b></td></tr>
+
+<tr>
+<td><b>setn</b> rX N</td>
+<td>Set register rX equal to the integer N (-128 to +127)</td>
+<td><font color="white">None</font></td>
+</tr>
+<tr>
+<td><b>addn</b> rX N</td>
+<td>Add integer N (-128 to 127) to register rX</td>
+<td><font color="white">None</font></td>
+</tr>
+<tr>
+<td><b>copy</b> rX rY</td>
+<td>Set rX = rY</td>
+<td><b>mov</b></td>
+</tr>
+
+<tr><td colspan="3" align="center" style="font-family:serif; font-size:150%;"><b><font color="darkred">Arithmetic</font></b></td></tr>
+
+<tr>
+<td><b>add</b> rX rY rZ</td>
+<td>Set rX = rY + rZ</td>
+<td><font color="white">None</font></td>
+</tr>
+<tr>
+<td><b>sub</b> rX rY rZ</td>
+<td>Set rX = rY - rZ</td>
+<td><font color="white">None</font></td>
+</tr>
+<tr>
+<td><b>neg</b> rX rY</td>
+<td>Set rX = -rY</td>
+<td><font color="white">None</font></td>
+</tr>
+<tr>
+<td><b>mul</b> rX rY rZ</td>
+<td>Set rX = rY * rZ</td>
+<td><font color="white">None</font></td>
+</tr>
+<tr>
+<td><b>div</b> rX rY rZ</td>
+<td>Set rX = rY // rZ (integer division; rounds down; no remainder)</td>
+<td><font color="white">None</font></td>
+</tr>
+<tr>
+<td><b>mod</b> rX rY rZ</td>
+<td>Set rX = rY % rZ (returns the remainder of integer division)</td>
+<td><font color="white">None</font></td>
+</tr>
+<tr>
+
+</tr><tr><td colspan="3" align="center" style="font-family:serif; font-size:150%;"><b><font color="darkred">Jumps!</font></b></td></tr>
+
+<tr><td> <b>jumpn</b> N</td>
+<td>Set program counter to address N</td>
+<td><font color="white">None</font></td>
+</tr>
+<tr>
+<td> <b>jumpr</b> rX</td>
+<td>Set program counter to address in rX</td>
+<td><b>jump</b></td>
+</tr>
+<tr>
+<td><b>jeqzn</b> rX N</td>
+<td>If rX == 0, then jump to line N</td>
+<td><b>jeqz</b></td>
+</tr>
+<tr>
+<td><b>jnezn</b> rX N</td>
+<td>If rX != 0, then jump to line N</td>
+<td><b>jnez</b></td>
+</tr>
+<tr>
+<td><b>jgtzn</b> rX N</td>
+<td>If rX &gt; 0, then jump to line N</td>
+<td><b>jgtz</b></td>
+</tr>
+<tr>
+<td><b>jltzn</b> rX N</td>
+<td>If rX &lt; 0, then jump to line N</td>
+<td><b>jltz</b></td>
+</tr>
+<tr>
+<td><b>calln</b> rX N</td>
+<td>Copy addr. of next instr. into rX and then jump to mem. addr. N</td>
+<td><b>call</b></td>
+</tr>
+<tr>
+
+</tr><tr><td colspan="3" align="center" style="font-family:serif; font-size:150%;"><b><font color="darkred">Interacting with memory (RAM)</font></b></td></tr>
+<tr>
+<td><b>pushr</b> rX rY</td>
+<td>Store contents of register rX onto stack pointed to by reg. rY</td>
+<td><font color="white">None</font></td>
+</tr>
+<tr>
+<td><b>popr</b> rX rY</td>
+<td>Load contents of register rX from stack pointed to by reg. rY</td>
+<td><font color="white">None</font></td>
+</tr>
+
+<tr>
+<td><b>loadn</b> rX N</td>
+<td>Load register rX with the contents of memory address N</td>
+<td><font color="white">None</font></td>
+</tr>
+<tr>
+<td><b>storen</b> rX N</td>
+<td>Store contents of register rX into memory address N</td>
+<td><font color="white">None</font></td>
+</tr>
+<tr>
+<td><b>loadr</b> rX rY</td>
+<td>Load register rX with data from the address location held in reg. rY</td>
+<td><b>loadi, load</b></td>
+</tr>
+<tr>
+<td><b>storer</b> rX rY</td>
+<td>Store contents of register rX into memory address held in reg. rY</td>
+<td><b>storei, store</b></td>
+</tr>
+</tbody></table>
+
+</center>
+
+
+
+<br><br>
+
+<h3>
+Table of Contents
+</h3>
+<ul>
+<li><a href="https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/documentation.html#Introduction">Introduction</a>
+</li><li><a href="https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/documentation.html#Usage">Using HMMM</a>
+</li><li><a href="https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/documentation.html#Format">Code Format</a>
+</li><li><a href="https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/documentation.html#Machine">Machine Layout</a>
+</li><li><a href="https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/documentation.html#Instructions">The HMMM Instruction Set</a>
+</li><li><a href="https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/documentation.html#IO">Input and Output</a>
+</li><li><a href="https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/documentation.html#Halting">Halting the Program</a>
+</li><li><a href="https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/documentation.html#Diagnostic">Diagnostic Features</a>
+</li><li><a href="https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/documentation.html#Examples">Examples</a>
+</li><li><a href="https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/documentation.html#Contact">Contact Information</a>
+</li><li><b><a href="https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/advanced.html">Advanced topics</a></b>
+</li></ul>
+
+
+<h3><b><a name="Introduction">Introduction</a></b></h3>
+
+Hmmm (Harvey Mudd Miniature Machine) is a 16-bit, 26-instruction simulated assembly language with 2<sup>8</sup> = 256 16-bit words of memory. Hmmm is written in Python, and it is intended as an introduction to assembly coding in general. Programs written in Hmmm consist of numbered lines with one instruction per line, and comments.<p></p>
+
+<p>
+Hmmm is implemented as a single program written in Python.  By default,
+<tt>hmmm</tt> will assemble and run a file written in the Hmmm assembly
+language.  There are options that to assemble a program without
+executing it, to run a previously assembled program, and to invoke a
+built-in debugger.
+</p>
+
+<!--
+<h3><b><a name="Usage">Using Hmmm at Harvey Mudd</a></b></h3>
+
+At Harvey Mudd, the <tt>hmmm</tt> program is installed on the
+Computer Science Lab
+Macs. On any of the machines, follow the
+directions below to access the program. It is also available online in
+the form of source code from the HMC CS5 website at <a
+href="http://www.cs.hmc.edu/twiki/bin/view/CS5/Resources">http://www.cs.hmc.edu/twiki/bin/view/CS5/Resources</a>.
+-->
+
+<h4><b>Installing Hmmm</b></h4>
+
+Hmmm is available online in
+the form of source code from the HMC CS5 website at <a href="http://www.cs.hmc.edu/twiki/bin/view/CS5/Resources">http://www.cs.hmc.edu/twiki/bin/view/CS5/Resources</a>.
+If you plan on installing it on your own machine, you will need a working
+version of Python 3 on your machine, but nothing more. Download the
+<tt>hmmm</tt> file and put it in a directory
+where you will also write your Hmmm programs.
+
+<h4><b>Using Hmmm</b></h4>
+
+Please refer to your lecture notes and the current Hmmm assignment for an introduction to using Hmmm.
+<!--<a href="https://www.cs.hmc.edu/twiki/bin/view/CS5/HmmmCountdown">Please read Homework 6, Problem 1 for an introduction to using Hmmm.</a>
+-->
+
+<h4><b>The Basics</b></h4>
+
+To assemble (compile) and run a Hmmm program, simply type "<tt>python
+hmmm</tt>" at the command prompt.
+Hmmm will ask for an input file, assemble it, and if assembly succeeds it
+will also run it.
+(On Macs, you may be able to save some effort by typing "<tt>./hmmm</tt>
+<i>filename.hmmm</i>" where <i>filename.hmmm</i> is the name of your Hmmm
+program.
+<p></p>
+
+<h4><b>Getting Fancy</b></h4>
+
+Hmmm accepts accepts the -h, --help, -d, and -o options.
+-h and --help print explanations of all of the options. -d invokes
+the Hmmm debugger.  If -o is given, followed by a file name, the
+program is assembled and the result is written to the named file;
+later Hmmm can be run on that file to execute it.  For example:<p></p>
+
+<pre>python hmmm program.hmmm -o program.hb
+python hmmm -d program.hb
+</pre>
+
+In debug mode, type "h" or "help" at the debug mode prompt for
+information on debugging commands, or see the <a href="https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/documentation.html#Diagnostic">diagnostic
+features</a> section of this document.
+
+<h3><b><a name="Files">File Types</a></b></h3>
+
+The assembler and the simulator are both file-type
+independent. Generally, however, files with a 'hmmm' (hmmm assembly)
+extension are Hmmm code, while files with an 'hb' (hmmm binary)
+extension are assembled Hmmm binary. (Because Hmmm is only a simulator, the binary files are actually text files and are readable and editable with standard text editors).
+
+<h3><b><a name="Format">Code Format</a></b></h3>
+
+Each line of Hmmm code consists of a line number, an instruction, and one or
+more arguments. The line numbers must start at 0 and be consecutive
+integers, and they must be placed at the beginning of the line with no
+preceding characters. After the line number, use at least one character of
+whitespace to separate the instruction. The line number corresponds directly
+to the memory address of the line.  Free (writable) memory begins at the
+address immediately after the last line of the program.<p></p>
+
+The instruction consists of a single word; all of the instructions are
+composed of lowercase alphabetic characters. After the instruction there
+must be at least one space and then 0 or more arguments, separated by any
+combination of whitespace and commas.  The number of arguments
+depends on the instruction.<p></p>
+
+Each argument must be either a register or a number. Registers are denoted
+by 'r' followed by the number of the register, as in 'r3'. Numbers must fit
+in 8 bits.  (Their decimal value must either be in the range -128 to 127
+inclusive, or 0 to 255 inclusive, depending on the particular instruction.
+This is because numbers are represented using a method called "twos
+complement".) Each argument must be separated from any preceding arguments by any combination of whitespace and ',' characters, and the line may optionally be ended with some combination of whitespace and comments.<p></p>
+
+See the <a href="https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/documentation.html#Examples">examples</a> section for examples of proper and improper syntax.<p></p>
+
+Comments in Hmmm are identical to comments in Python: a '#' character
+begins a comment that continues to the end of the line. Comments are
+allowed both on empty lines and after the arguments on instruction lines.
+Comments on otherwise empty lines should not have line numbers,
+and will not be counted towards the line number of any following
+lines.  Completely blank lines are also permitted<p></p>
+
+<h3><b><a name="Machine">Machine Organization</a></b></h3>
+
+Hmmm simulates a computer that has 16 16-bit registers and 256 16-bit
+words of memory. The program is loaded
+into memory starting at location 0, so a program 12 lines long has
+244 free words of memory starting at location 12 (locations 0 through
+11 are occupied by the program's instructions). The program counter
+starts at location 0 and is incremented by 1 each cycle. It can also
+be redirected using the various <b>jump</b> commands. Each cycle, the
+simulator reads the instruction at the memory location pointed to by
+the program counter and executes it. This continues until it executes
+a <b>halt</b> instruction.<p></p>
+
+<p>
+15 of the 16 registers are interchangeable from a hardware standpoint
+(although refer to the conventions below).  The only special register
+is r0.  When used as a source operand, r0 always provides a zero; when
+used as a destination it discards the result.
+</p>
+
+<h3><b><a name="Instructions">The Hmmm Instruction Set</a></b></h3>
+
+There are 26 different instructions in Hmmm, each of which accepts
+between 0 and 3 arguments. Two of the instructions, loadn and addn,
+accept a signed numerical argument between -128 and 127.  The load,
+store, call, and jump instructions accept an unsigned numerical
+argument between 0 and 255.  All other instruction arguments are
+registers. In the code below, register arguments will be represented
+by 'rX', 'rY', and 'rZ', while numerical arguments will be represented
+by '#'. In real code, any of the 16 registers could take the place of
+'rX' 'rY' or 'rZ'. The available instructions are:<p></p>
+<table align="center" border="1">
+<tbody><tr><th>Assembly</th><th align="left">Binary</th><th align="left">Description</th></tr>
+<tr><td><b>halt</b></td><td><tt>0000 0000 0000 0000</tt></td><td>Halt program</td></tr>
+<tr><td><b>nop</b></td><td><tt>0110 0000 0000 0000</tt></td><td>Do nothing</td></tr>
+<tr><td><b>read</b> r<i>X</i></td><td><tt>0000 XXXX 0000 0001</tt></td><td>Stop
+    for user input,
+    which will then be stored in register r<i>X</i> (input is an
+    integer from -32768 to +32767).<br>Prints "Enter number: " to
+    prompt user for input</td></tr>
+<tr><td><b>write</b> r<i>X</i></td><td><tt>0000 XXXX 0000 0010</tt></td><td>Print
+    the contents
+    of register r<i>X</i> on standard output</td></tr>
+<tr><td><b>setn</b> r<i>X</i>, #</td><td><tt>0001 XXXX #### ####</tt></td><td>Load an
+  8-bit integer # (-128 to +127) into register
+  r<i>X</i></td></tr>
+<tr><td><b>loadr</b> r<i>X</i>, r<i>Y</i></td><td><tt>0100 XXXX YYYY 0000</tt>
+  </td><td>Load
+    register r<i>X</i> from memory word addressed by r<i>Y</i>:
+    r<i>X</i> = memory[r<i>Y</i>]</td></tr>
+<tr><td><b>storer</b> r<i>X</i>, r<i>Y</i></td><td><tt>0100 XXXX YYYY 0001</tt>
+  </td><td>Store
+    contents of register r<i>X</i> into memory word addressed by
+    r<i>Y</i>:
+    memory[r<i>Y</i>] = r<i>X</i></td></tr>
+<tr><td><b>popr</b> r<i>X</i> r<i>Y</i></td><td><tt>0100 XXXX YYYY 0010</tt>
+    </td><td>Load contents of register r<i>X</i> from stack pointed to by
+    register r<i>Y</i>:
+    r<i>Y</i> <tt>-</tt>= 1; r<i>X</i> = memory[r<i>Y</i>]</td></tr>
+<tr><td><b>pushr</b> r<i>X</i> r<i>Y</i></td><td><tt>0100 XXXX YYYY 0011</tt>
+    </td><td>Store contents of register r<i>X</i> onto stack pointed to by
+    register r<i>Y</i>:
+    memory[r<i>Y</i>] = r<i>X</i>; r<i>Y</i> += 1</td></tr>
+<tr><td><b>loadn</b> r<i>X</i>, #</td><td><tt>0010 XXXX #### ####</tt></td><td>Load
+  register rX with memory word at address #</td></tr>
+<tr><td><b>storen</b> r<i>X</i>, #</td><td><tt>0011 XXXX #### ####</tt></td><td>Store
+  contents of register r<i>X</i> into memory word at address #</td></tr>
+<tr><td><b>addn</b> r<i>X</i>, #</td><td><tt>0101 XXXX #### ####</tt></td><td>Add
+    the 8-bit integer # (-128 to 127) to register
+    r<i>X</i></td></tr>
+<tr><td><b>copy</b> r<i>X</i>, r<i>Y</i></td><td><tt>0110 XXXX YYYY 0000</tt>
+  </td><td>Set r<i>X</i> = r<i>Y</i></td></tr>
+<tr><td><b>neg</b> r<i>X</i>, r<i>Y</i></td><td><tt>0111 XXXX 0000 YYYY
+  </tt></td><td>Set r<i>X</i> = -r<i>Y</i></td></tr>
+<tr><td><b>add</b> r<i>X</i>, r<i>Y</i>, r<i>Z</i></td><td><tt>0110 XXXX YYYY ZZZZ
+  </tt></td><td>Set r<i>X</i> = r<i>Y</i> + r<i>Z</i></td></tr>
+<tr><td><b>sub</b> r<i>X</i>, r<i>Y</i>, r<i>Z</i></td><td><tt>0111 XXXX YYYY ZZZZ
+  </tt></td><td>Set r<i>X</i> = r<i>Y</i> - r<i>Z</i></td></tr>
+<tr><td><b>mul</b> r<i>X</i>, r<i>Y</i>, r<i>Z</i>
+  </td><td><tt>1000 XXXX YYYY ZZZZ</tt>
+  </td><td>Set r<i>X</i> = r<i>Y</i> * r<i>Z</i></td></tr>
+<tr><td><b>div</b> r<i>X</i>, r<i>Y</i>, r<i>Z</i>
+  </td><td><tt>1001 XXXX YYYY ZZZZ</tt>
+  </td><td>Set r<i>X</i> = r<i>Y</i> // r<i>Z</i></td></tr>
+<tr><td><b>mod</b> r<i>X</i>, r<i>Y</i>, r<i>Z</i>
+  </td><td><tt>1010 XXXX YYYY ZZZZ</tt>
+  </td><td>Set r<i>X</i> = r<i>Y</i> % r<i>Z</i></td></tr>
+<tr><td><b>jump</b> rX</td><td><tt>0000 XXXX 0000 0011</tt></td><td>Set program
+    counter to address in r<i>X</i></td></tr>
+<tr><td><b>jumpn</b> n</td><td><tt>1011 0000 #### ####</tt></td><td>Set program
+    counter to address #</td></tr>
+<tr><td><b>jeqz</b> r<i>X</i>, #</td><td><tt>1100 XXXX #### ####</tt>
+  </td><td>If r<i>X</i> = 0
+    then set program counter to address #</td></tr>
+<tr><td><b>jnez</b> r<i>X</i>, #</td><td><tt>1101 XXXX #### ####</tt>
+  </td><td>If r<i>X</i> &#8800; 0
+    then set program counter to address #</td></tr>
+<tr><td><b>jgtz</b> r<i>X</i>, #</td><td><tt>1110 XXXX #### ####</tt>
+  </td><td>If r<i>X</i> &gt; 0
+    then set program counter to address #</td></tr>
+<tr><td><b>jltz</b> r<i>X</i>, #</td><td><tt>1111 XXXX #### ####</tt>
+  </td><td>If r<i>X</i> &lt; 0
+    then set program counter to address #</td></tr>
+<tr><td><b>call</b> r<i>X</i>, #</td><td><tt>1011 XXXX 0000 0000</tt>
+  </td><td>Set r<i>X</i> to
+    (next) program counter, then set program counter to address #</td></tr>
+</tbody></table>
+
+
+<h3><b><a name="IO">Input and Output</a></b></h3>
+
+Hmmm supports incredibly simplified I/O in the form of the <b>read</b> and <b>write</b> instructions.<p></p>
+
+The <b>read</b> instruction prompts the user to enter a number and,
+after a number is typed,
+puts it into the given register. If the number is too big or too small,
+or if it is otherwise bad, <b>read</b> will complain and prompt the user
+again.
+As a special convenience, if the user types "q" intead of a number,
+the program will immediately halt.
+The <b>write</b> instruction simply writes the given register
+to the user's console.
+
+<h3><b><a name="Halting">Halting The Program</a></b></h3>
+
+The <b>halt</b> instruction immediately ends the program and
+stops Hmmm.
+In addition, at
+any point during execution, the user can type
+ctrl-C to stop the program, and entering 'q' at either the debug mode prompt
+or the input prompt will stop the program. Typing ctrl-D at any prompt
+will also stop the program.<p></p>
+
+<h3><b><a name="Diagnostic">Diagnostic Features</a></b></h3>
+
+The simulator program features a debug mode that is useful for
+diagnosing errors in the program. It is invoked using either the -d or
+--debug command-line options.<p></p>
+
+<p>
+The debug mode prints information after executing each instruction, showing what
+instruction was just executed and where that instruction was found in memory
+(what the program counter was). It also prints the debug prompt. Any
+unrecognized input at the debug prompt causes the simulator to step one
+command forward. Recognized commands include 'c' or 'continue', 'd' or
+'dump', 'h' or 'help', 'p' or 'print', 'q' or 'quit', and 'r' or 'run'.</p>
+
+<table>
+<tbody><tr><th align="left">Command</th><th align="left">Effect</th></tr>
+<tr><td><b>continue</b>
+  </td><td>Causes the debugger to run through the rest of the program
+         without prompting for debugging commands, but continuing to print
+         debugging information.
+  </td></tr>
+<tr><td><b>dump</b>
+  </td><td>Immediately prints the contents of memory, printing the code
+         lines first (one per line) followed by the contents of memory
+         memory in 6 columns, and then asks for another debugging command.
+  </td></tr>
+
+<tr><td><b>help</b>
+  </td><td>Prints a short summary of the debug commands and returns to
+         the prompt.
+
+  </td></tr>
+<tr><td><b>print</b>
+  </td><td>Prints the contents of the registers in a single column and
+         returns to the prompt.
+
+  </td></tr>
+<tr><td><b>quit</b>
+  </td><td>Causes the program to exit immediately.
+
+  </td></tr>
+<tr><td><b>run</b>
+  </td><td>Causes the program to continue running as if it had been
+         invoked with debug mode off: no debugging information is printed and
+         no further prompts are given.
+  </td></tr>
+
+</tbody></table>
+
+<!--
+The ANSI simulator works a bit differently. In debug mode, the register and
+memory contents are displayed and updated in real time. The debug prompt is
+displayed after every instruction is executed. Additional displays include
+the last and next instructions (the last instruction was just executed), and
+a list of all inputs and outputs. The ANSI debugger does not support the
+'continue', 'print' or 'dump' commands (except in no-memory mode, where it
+accepts 'dump'). It supports three additional commands, however: the 'n' or 'next', 'b' or 'break', and 'c' or 'clear' commands.</p>
+-->
+
+<table>
+<tbody><tr><th align="left">Command</th><th align="left">Effect</th></tr>
+<tr><td><b>next #</b>
+  </td><td>Executes the next # instructions without displaying the
+         debug prompt, after which the prompt is displayed again.
+  </td></tr>
+
+<tr><td><b>break #</b>
+  </td><td>Inserts a breakpoint at location # in memory. If the
+         simulator would not otherwise display the debugging prompt before
+         executing the instruction at that location, it does so, reentering
+         normal debugging mode. A breakpoint cancells the next and run
+         commands when reached. The breakpoint is indicated by an arrow on
+         the memory display unless no-memory mode is on.
+  </td></tr>
+
+<tr><td><b>clear #</b>
+  </td><td>Removes a breakpoint at location # in memory. If there is
+         no breakpoint at that location, the command is not valid and is
+         interpreted as a single step command.
+  </td></tr>
+</tbody></table>
+
+<!--
+If the ANSI debug mode is to display the entire contents of memory and
+the registers, a nonstandard terminal size is required. To ensure
+proper functionality, a terminal width of 200 characters and height of
+52 characters should be used, although the minimum specifications
+depend on the length of the binary file being executed. Because such a
+large terminal size is usually impossible on standard-resolution
+(1024x768) monitors without a very small font size, there is a
+--no-memory option (or simply -m) that disables memory display. This
+allows the debugging mode to be used on smaller terminals. To view the
+contents of memory in no-memory mode, enter 'd' or 'dump' at the
+debugging prompt.</p>
+-->
+
+<h3><b><a name="Examples">Examples</a></b></h3>
+
+<ul>
+<li><a href="https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/documentation.html#Good">Good Code</a>
+</li><li><a href="https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/documentation.html#Bad">Bad Code</a>
+</li><li><a href="https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/documentation.html#Improper">Improper Syntax</a>
+</li></ul>
+
+<h4><b><a name="Good">Good Code:</a></b></h4>
+
+This is a well-written and -commented program that takes two numbers, echoes the first, and returns the first divided by the second, or 0 if the second is 0.<p></p>
+<pre># program title
+# author and date
+# descriptive comment
+0   read r1     # read dividend from the user
+1   write r1    # echo the input
+2   read r2     # read divisor from the user
+3   jeqzn r2, 7 # jump to 7 if trying to divide by 0
+
+4   div r3, r1, r2 # divide user's parameters
+5   write r3    # print the result
+6   halt
+
+7   setn r3, 0  # 0 is the result for division by 0
+8   write r3    # print the result
+9   halt
+</pre>
+
+This is the output from <tt>hmmm</tt> assembler when the program is run
+(note that the assembler truncates comments to make the lines fit
+neatly on your screen):<p></p>
+
+<pre>
+----------------------
+| ASSEMBLY SUCCESSFUL |
+----------------------
+
+0: 0000 0001 0000 0001             0   read r1     # read dividend from the us
+1: 0000 0001 0000 0010             1   write r1    # echo the input
+2: 0000 0010 0000 0001             2   read r2     # read divisor from the use
+3: 1100 0010 0000 0111             3   jeqzn r2, 7 # jump to 7 if trying to di
+4: 1001 0011 0001 0010             4   div r3, r1, r2 # divide user's paramete
+5: 0000 0011 0000 0010             5   write r3    # print the result
+6: 0000 0000 0000 0000             6   halt
+7: 0001 0011 0000 0000             7   setn r3, 0  # 0 is the result for divis
+8: 0000 0011 0000 0010             8   write r3    # print the result
+9: 0000 0000 0000 0000             9   halt
+
+Enter number (q to quit): 42
+42
+Enter number (q to quit): 6
+7
+</pre>
+
+<h4><b><a name="Bad">Bad Code:</a></b></h4>
+
+This is the same program, with the same functionality. However, this is very low-quality code.<p></p>
+
+<pre> 0  read r1
+1   write r1
+2   read  r2 # read r2
+3   jeqzn r2, 7
+  4 div r3 r1, r2
+5   write r3
+6   halt        # end
+7      setn r3  0
+8   write r3
+9   halt
+</pre>
+
+This is the assembler output for the above code:<p></p>
+
+<pre>
+----------------------
+| ASSEMBLY SUCCESSFUL |
+----------------------
+
+0: 0000 0001 0000 0001             0  read r1
+1: 0000 0001 0000 0010             1   write r1
+2: 0000 0010 0000 0001             2   read  r2 # read r2
+3: 1100 0010 0000 0111             3   jeqzn r2, 7
+4: 1001 0011 0001 0010             4 div r3 r1, r2
+5: 0000 0011 0000 0010             5   write r3
+6: 0000 0000 0000 0000             6   halt        # end
+7: 0001 0011 0000 0000             7      setn r3  0
+8: 0000 0011 0000 0010             8   write r3
+9: 0000 0000 0000 0000             9   halt
+
+Enter number (q to quit): 42
+42
+Enter number (q to quit): 7
+6
+</pre>
+
+<h4><b><a name="Improper">Improper Syntax:</a></b></h4>
+
+This is the same program a third time, this time modified to demonstrate improper syntax. This program will not assemble.<p></p>
+
+<pre># program title
+# program title
+# author and date
+# descriptive comment
+0   read r1,    # trailing characters are not allowed
+1   write[r1]   # no grouping symbols allowed
+2   read r2, r3 # too many arguments here
+3   jeqzn r2, r7 # second argument must be a number
+4   div r3, r1r2 # arguments must be separated
+5   write 3     # write argument must be a register
+5   halt        # line number is incorrect
+7   setn r3, 128     # maximum number for setn and addn commands is 127
+                # (min is -128)
+9   writer3     # instruction must be separated from argument
+10halt          # instruction must be separated from line number
+</pre>
+
+Here is the assembly output for this program, demonstrating the error messages for the errors listed above:<p></p>
+
+<pre>
+ARGUMENT ERROR:
+WRONG NUMBER OF ARGUMENTS.
+DETECTED 2 ARGUMENTS, EXPECTED 1 ARGUMENTS
+read r1,
+
+SYNTAX ERROR ON LINE 1:
+1   write[r1]   # no grouping symbols allowed
+
+ARGUMENT ERROR:
+WRONG NUMBER OF ARGUMENTS.
+DETECTED 2 ARGUMENTS, EXPECTED 1 ARGUMENTS
+read r2, r3
+
+ARGUMENT ERROR:
+'r7' IS NOT A VALID NUMBER.
+
+ARGUMENT ERROR:
+WRONG NUMBER OF ARGUMENTS.
+DETECTED 2 ARGUMENTS, EXPECTED 3 ARGUMENTS
+div r3, r1r2
+
+REGISTER ERROR:
+'3' IS NOT A VALID REGISTER.
+
+BAD LINE NUMBER AT LINE 6:
+LINE NUMBER: 5 EXPECTED 6
+
+ARGUMENT ERROR:
+'128' IS OUT OF RANGE FOR THE ARGUMENT.
+
+OPERATION ERROR:
+'writer IS NOT A VALID OPERATION.
+
+SYNTAX ERROR ON LINE 9:
+10halt          # instruction must be separated from line number
+
+***** ASSEMBLY TERMINATED UNSUCCESSFULLY *****
+              ASSEMBLY RESULTS:
+
+0: ***ARGUMENT ERROR HERE***       0   read r1,    # trailing characters are n
+1: ***SYNTAX ERROR HERE***         1   write[r1]   # no grouping symbols allow
+2: ***ARGUMENT ERROR HERE***       2   read r2, r3 # too many arguments here
+3: ***ARGUMENT ERROR HERE***       3   jeqzn r2, r7 # second argument must be
+4: ***ARGUMENT ERROR HERE***       4   div r3, r1r2 # arguments must be separa
+5: ***REGISTER ERROR HERE***       5   write 3     # write argument must be a
+6: ***BAD LINE NUMBER HERE***      5   halt        # line number is incorrect
+7: ***ARGUMENT ERROR HERE***       7   setn r3, 128     # maximum number for s
+8: ***OPERATION ERROR HERE***      9   writer3     # instruction must be separ
+9: ***SYNTAX ERROR HERE***         10halt          # instruction must be separ
+
+***** ASSEMBLY FAILED, SEE ABOVE FOR ERRORS *****
+</pre>
+
+<p>
+Although it may not be obvious from the example above, the assembler
+will stop trying to assemble each line of code as soon as it finds an
+error. Thus, if a line of code has multiple errors in it,
+only one error will be reported. Once that error is fixed,
+the next error on that line will be reported if it is still there.</p>
+
+<h3><b><a name="Contact">Contact Information</a></b></h3>
+
+If this document is inaccurate or you believe that you have found a bug in
+<tt>hmmm</tt>, or if you think that something
+should be added to it, please contact the CS5 staff at the
+usual <tt>cs5help</tt> address.<p></p>
+
+
+
+</body></html>

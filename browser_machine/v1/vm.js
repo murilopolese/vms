@@ -257,7 +257,7 @@ const executeInstruction = function(state) {
 	return Object.assign({}, state)
 }
 
-// Intermediary code (Assembly)
+// Assembler
 const getOpcode = function(str) {
 	switch (str) {
 		case 'ADD':
