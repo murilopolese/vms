@@ -1,4 +1,3 @@
-let fs = require('fs')
 var esprima = require('esprima')
 
 /**
