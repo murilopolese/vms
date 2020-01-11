@@ -15,7 +15,7 @@ const nop = function(state) {
 	return clone(state)
 }
 const halt = function(state) {
-	// Stop!	
+	// Stop!
 	state.running = false
 	return clone(state)
 }
@@ -33,18 +33,22 @@ const jump = function(state, instruction) {
 	return clone(state)
 }
 const setn = function(state, instruction) {
-	const int8 = getInt8(instruction)
 	const rx = getFirstNibble(instruction)
-	state.registers[rx] = int8
+	state.registers[rx] = instruction & 0xFF
 	return clone(state)
 }
 const loadr = function(state, instruction) {
 	const rx = getFirstNibble(instruction)
 	const ry = getSecondNibble(instruction)
-	state.registers[rx] = getInt8(state.program[ry])
+	state.registers[rx] = state.memory[state.registers[ry]]
 	return clone(state)
 }
-const storer = function(state, instruction) {}
+const storer = function(state, instruction) {
+	const rx = getFirstNibble(instruction)
+	const ry = getSecondNibble(instruction)
+	state.memory[state.registers[ry]] = state.registers[rx]
+	return clone(state)
+}
 const popr = function(state, instruction) {}
 const pushr = function(state, instruction) {}
 const loadn = function(state, instruction) {}
@@ -104,7 +108,7 @@ const getCleanState = function() {
 	let memoryPointer = 0x0000
 	let stack = new Uint16Array(8)
 	let stackPointer = 0x0000
-	let registers = new Int8Array(16)
+	let registers = new Uint8Array(16)
 	for (let i = 0; i < program.length; i++) {
 		program[i] = 0x0000
 	}

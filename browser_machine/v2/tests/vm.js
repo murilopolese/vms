@@ -70,40 +70,34 @@ describe('Testing mutators', function() {
 		state = vm.opcodes.halt(state)
 		assert(state.running == false, `${state.running} == false`)
 	})
-	it('`setn` should Load an 8-bit integer # (-128 to +127) into register rX', function() {
-		let instructions = {
-			0b0001000111111111: 127,
-			0b0001000100000000: -128,
-			0b0001000110000000: 0
-		}
-		Object.keys(instructions).forEach(function(instruction) {
-			state = vm.getCleanState()
-			state = vm.opcodes.setn(state, instruction)
-			assert(
-				state.registers[1] == instructions[instruction],
-				`${state.registers[1]} == ${instructions[instruction]}`
-			)
-		})
+	it('`setn` should Load an 8-bit unsigned integer into register rX', function() {
+		let instruction = 0b0001000100001010
+		state = vm.opcodes.setn(state, instruction)
+		assert(
+			state.registers[1] == 0b00001010,
+			`${state.registers[1]} == ${0b00001010}`
+		)
 	})
 	it('`loadr` should Load register rX from memory word addressed by rY: rX = memory[rY]', function() {
-		let instruction = 0b0100000110000000
-		state.program[0b1000] = 0xFF
+		let instruction = 0b0100000100100000
+		state.registers[2] = 0x01 // Address in memory
+		state.memory[0x01] = 0xFF // Set that address to 0xFF | 127
 		state = vm.opcodes.loadr(state, instruction)
 		assert(
-			state.registers[1] == 127,
-			`${state.registers[1]} == 127`
-		)
-		state.program[0b1000] = 0x00
-		instruction = 0b0100000110000000
-		state = vm.opcodes.loadr(state, instruction)
-		assert(
-			state.registers[1] == -128,
-			`${state.registers[1]} == -128`
+			state.registers[1] == 0xFF,
+			`${state.registers[1]} == 0xFF`
 		)
 	})
-	// it('`storer` should Store contents of register rX into memory word addressed by rY: memory[rY] = rX', function() {
-	// 	assert(false)
-	// })
+	it('`storer` should Store contents of register rX into memory word addressed by rY: memory[rY] = rX', function() {
+		let instruction = 0b0100000100100000
+		state.registers[1] = 0xFF // value to be loaded (uint8)
+		state.registers[2] = 0x01 // memory address to store on memory
+		state = vm.opcodes.storer(state, instruction)
+		assert(
+			state.memory[0x1] == 0xFF,
+			`${state.memory[0x1]} == 0xFF`
+		)
+	})
 	// it('`popr` should Load contents of register rX from stack pointed to by register rY: rY -= 1; rX = memory[rY]', function() {
 	// 	assert(false)
 	// })
