@@ -57,6 +57,10 @@ describe('Testing the machine code parsing', function() {
 		assert(vm.getInt8(0x11FF) == 127, `${vm.getInt8(0x11FF)} == 127`)
 		assert(vm.getInt8(0x1180) == 0, `${vm.getInt8(0x1180)} == 0`)
 	})
+	it('should get lower byte as 8 bit unsigned integer', function() {
+		assert(vm.getUint8(0x1100) == 0x00, `${vm.getUint8(0x1100)} == 0x00`)
+		assert(vm.getUint8(0x11FF) == 0xFF, `${vm.getUint8(0x11FF)} == 0xFF`)
+	})
 })
 
 describe('Testing mutators', function() {

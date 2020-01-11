@@ -34,7 +34,7 @@ const jump = function(state, instruction) {
 }
 const setn = function(state, instruction) {
 	const rx = getFirstNibble(instruction)
-	state.registers[rx] = instruction & 0xFF
+	state.registers[rx] = getUint8(instruction)
 	return clone(state)
 }
 const loadr = function(state, instruction) {
@@ -214,6 +214,9 @@ const getThirdNibble = function(instruction) {
 const getInt8 = function(instruction) {
 	return (instruction & 0xFF) - 128
 }
+const getUint8 = function(instruction) {
+	return instruction & 0xFF
+}
 
 const vm = {
 	getCleanState,
@@ -222,6 +225,7 @@ const vm = {
 	getSecondNibble,
 	getThirdNibble,
 	getInt8,
+	getUint8,
 	opcodes
 }
 
