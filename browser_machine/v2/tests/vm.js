@@ -69,6 +69,12 @@ describe('Testing mutators', function() {
 		state = vm.getCleanState()
   })
 
+	it('`noop` should do nothing', function() {
+		let instruction = 0b0110000000000000
+		let oldState = Object.assign({}, state)
+		state = vm.opcodes.nop(state, instruction)
+		assert.deepEqual(state, oldState)
+	})
 	it('`halt` should set running to false', function() {
 		state.running = true
 		state = vm.opcodes.halt(state)
@@ -252,29 +258,72 @@ describe('Testing mutators', function() {
 		)
 	})
 	it('`jump` should Set program counter to address in rX', function() {
+		let instruction = 0b0000000100000011
 		state.registers[1] = 0xFF
-		state = vm.opcodes.jump(state, 0b0000000100000011)
+		state = vm.opcodes.jump(state, instruction)
 		assert(
 			state.programPointer == state.registers[1],
 			`${state.programPointer} == ${state.registers[1]}`
 		)
 	})
-	// it('`jumpn` should Set program counter to address #', function() {
-	// 	assert(false)
-	// })
-	// it('`jeqz` should If rX = 0 then set program counter to address #', function() {
-	// 	assert(false)
-	// })
-	// it('`jnez` should If rX ≠ 0 then set program counter to address #', function() {
-	// 	assert(false)
-	// })
+	it('`jumpn` should Set program counter to address #', function() {
+		let instruction = 0b1011000011111111
+		state = vm.opcodes.jumpn(state, instruction)
+		assert(
+			state.programPointer == 0xFF,
+			`${state.programPointer} == 0xFF`
+		)
+	})
+	it('`jeqz` should If rX = 0 then set program counter to address #', function() {
+		let instruction = 0b1100000111111111
+		state.programPointer = 0x0F
+		state.registers[1] = 0x1
+		state = vm.opcodes.jeqz(state, instruction)
+		assert(
+			state.programPointer == 0x0F,
+			`${state.programPointer} == 0x0F`
+		)
+		state.registers[1] = 0x0
+		state = vm.opcodes.jeqz(state, instruction)
+		assert(
+			state.programPointer == 0xFF,
+			`${state.programPointer} == 0xFF`
+		)
+	})
+	it('`jnez` should If rX ≠ 0 then set program counter to address #', function() {
+		let instruction = 0b1101000111111111
+		state.programPointer = 0x0F
+		state.registers[1] = 0x0
+		state = vm.opcodes.jnez(state, instruction)
+		assert(
+			state.programPointer == 0x0F,
+			`${state.programPointer} == 0x0F`
+		)
+		state.registers[1] = 0x1
+		state = vm.opcodes.jnez(state, instruction)
+		assert(
+			state.programPointer == 0xFF,
+			`${state.programPointer} == 0xFF`
+		)
+	})
+	// Those two also don't make sense as there is no "negative" number
 	// it('`jgtz` should If rX > 0 then set program counter to address #', function() {
 	// 	assert(false)
 	// })
 	// it('`jltz` should If rX < 0 then set program counter to address #', function() {
 	// 	assert(false)
 	// })
-	// it('`call` should Set rX to (next) program counter, then set program counter to address #', function() {
-	// 	assert(false)
-	// })
+	it('`call` should Set rX to (next) program counter, then set program counter to address #', function() {
+		let instruction = 0b1011000111111111
+		state.programPointer = 0x0F
+		state = vm.opcodes.call(state, instruction)
+		assert(
+			state.registers[1] == 0x10,
+			`${state.registers[1]} == 0x10`
+		)
+		assert(
+			state.programPointer == 0xFF,
+			`${state.programPointer} == 0xFF`
+		)
+	})
 })

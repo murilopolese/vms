@@ -10,10 +10,12 @@ const clone = function(object) {
 	return Object.assign({}, object)
 }
 // OPCODES
-const nop = function(state) {
-	// 	Do nothing
-	return clone(state)
+const nop = function(state, instruction) {
+	return state
 }
+const neg = nop
+const jgtz = nop
+const jltz = nop
 const halt = function(state) {
 	// Stop!
 	state.running = false
@@ -81,10 +83,6 @@ const addn = function(state, instruction) {
 	state.registers[rx] += int8
 	return clone(state)
 }
-const noop = function(state, instruction) {
-	return state
-}
-const neg = noop
 const copy = function(state, instruction) {
 	let rx = getFirstNibble(instruction)
 	let ry = getSecondNibble(instruction)
@@ -126,12 +124,35 @@ const mod = function(state, instruction) {
 	state.registers[rx] = state.registers[ry] % state.registers[rz]
 	return clone(state)
 }
-const call = function(state, instruction) {}
-const jumpn = function(state, instruction) {}
-const jeqz = function(state, instruction) {}
-const jnez = function(state, instruction) {}
-const jgtz = function(state, instruction) {}
-const jltz = function(state, instruction) {}
+const call = function(state, instruction) {
+	let rx = getFirstNibble(instruction)
+	let int8 = getUint8(instruction)
+	state.registers[rx] = state.programPointer + 1
+	state.programPointer = int8
+	return clone(state)
+}
+const jumpn = function(state, instruction) {
+	let int8 = getUint8(instruction)
+	state.programPointer = int8
+	return clone(state)
+}
+const jeqz = function(state, instruction) {
+	let rx = getFirstNibble(instruction)
+	let int8 = getUint8(instruction)
+	if (state.registers[rx] == 0) {
+		state.programPointer = int8
+	}
+	return clone(state)
+}
+const jnez = function(state, instruction) {
+	let rx = getFirstNibble(instruction)
+	let int8 = getUint8(instruction)
+	if (state.registers[rx] != 0) {
+		state.programPointer = int8
+	}
+	return clone(state)
+}
+
 
 
 // Dictionary between mneumonic and actual function
@@ -222,7 +243,7 @@ const getOpcode = function(instruction) {
 			return 'addn'
 		case 0b0110:
 			if (instruction & 0xFFF == 0x000) {
-				return 'noop'
+				return 'nop'
 			} else if ((instruction & 0b1111) == 0b0000) {
 				return 'copy'
 			} else {
