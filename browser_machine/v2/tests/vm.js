@@ -102,42 +102,155 @@ describe('Testing mutators', function() {
 			`${state.memory[0x1]} == 0xFF`
 		)
 	})
-	// it('`popr` should Load contents of register rX from stack pointed to by register rY: rY -= 1; rX = memory[rY]', function() {
-	// 	assert(false)
-	// })
-	// it('`pushr` should Store contents of register rX onto stack pointed to by register rY: memory[rY] = rX; rY += 1', function() {
-	// 	assert(false)
-	// })
-	// it('`loadn` should Load register rX with memory word at address #', function() {
-	// 	assert(false)
-	// })
-	// it('`storen` should Store contents of register rX into memory word at address #', function() {
-	// 	assert(false)
-	// })
-	// it('`addn` should Add the 8-bit integer # (-128 to 127) to register rX', function() {
-	// 	assert(false)
-	// })
-	// it('`copy` should Set rX = rY', function() {
-	// 	assert(false)
-	// })
+	it('`popr` should Load contents of register rX from stack pointed to by register rY: rY -= 1; rX = memory[rY]', function() {
+		let instruction = 0b0100000100100010
+		state.registers[2] = 0x02 // decrement of this should point address in memory
+		state.memory[0x01] = 0xFF // value in memory to load into rX
+		state = vm.opcodes.popr(state, instruction)
+		assert(
+			state.registers[2] == 0x01,
+			`${state.registers[2]} == 0x01`
+		)
+		assert(
+			state.registers[1] == 0xFF,
+			`${state.registers[0x1]} == 0xFF`
+		)
+	})
+	it('`pushr` should Store contents of register rX onto stack pointed to by register rY: memory[rY] = rX; rY += 1', function() {
+		let instruction = 0b0100000100100011
+		state.registers[1] = 0xFF // value to be stored
+		state.registers[2] = 0x01 // decrement of this should point address in memory
+		state = vm.opcodes.pushr(state, instruction)
+		assert(
+			state.registers[2] == 0x02,
+			`${state.registers[2]} == 0x02`
+		)
+		assert(
+			state.registers[1] == 0xFF,
+			`${state.registers[0x1]} == 0xFF`
+		)
+	})
+	it('`loadn` should Load register rX with memory word at address #', function() {
+		let instruction = 0b0010000100000001
+		state.memory[1] = 0xFF
+		state = vm.opcodes.loadn(state, instruction)
+		assert(
+			state.registers[1] == 0xFF,
+			`${state.registers[0x1]} == 0xFF`
+		)
+	})
+	it('`storen` should Store contents of register rX into memory word at address #', function() {
+		let instruction = 0b0011000100000001
+		state.registers[1] = 0xFF
+		state = vm.opcodes.storen(state, instruction)
+		assert(
+			state.memory[0b00000001] == 0xFF,
+			`${state.memory[0b00000001]} == 0xFF`
+		)
+	})
+	it('`addn` should Add the 8-bit unsigned integer to register rX', function() {
+		let instruction = 0b0101000100000001
+		state.registers[1] = 0x01
+		state = vm.opcodes.addn(state, instruction)
+		assert(
+			state.registers[1] == 0x02,
+			`${state.registers[1]} == 0x02`,
+		)
+	})
+	it('`copy` should Set rX = rY', function() {
+		let instruction = 0b0110000100100000
+		state.registers[1] = 0x00
+		state.registers[2] = 0xFF
+		state = vm.opcodes.copy(state, instruction)
+		assert(
+			state.registers[1] == state.registers[2],
+			`${state.registers[1]} == ${state.registers[2]}`
+		)
+	})
+	// Not doing this one because we are only dealing with uint types
 	// it('`neg` should Set rX = -rY', function() {
 	// 	assert(false)
 	// })
-	// it('`add` should Set rX = rY + rZ', function() {
-	// 	assert(false)
-	// })
-	// it('`sub` should Set rX = rY - rZ', function() {
-	// 	assert(false)
-	// })
-	// it('`mul` should Set rX = rY * rZ', function() {
-	// 	assert(false)
-	// })
-	// it('`div` should Set rX = rY / rZ', function() {
-	// 	assert(false)
-	// })
-	// it('`mod` should Set rX = rY % rZ', function() {
-	// 	assert(false)
-	// })
+	it('`add` should Set rX = rY + rZ', function() {
+		let instruction = 0b0110000100100011
+		state.registers[2] = 0x01
+		state.registers[3] = 0xFE
+		state = vm.opcodes.add(state, instruction)
+		assert(
+			state.registers[1] == 0xFF,
+			`state.registers[1] == 0xFF`
+		)
+	})
+	it('`add` should overflow gracefully', function() {
+		let instruction = 0b0110000100100011
+		state.registers[2] = 0x02
+		state.registers[3] = 0xFF
+		state = vm.opcodes.add(state, instruction)
+		assert(
+			state.registers[1] == 0x01,
+			`${state.registers[1]} == 0x01`
+		)
+	})
+	it('`sub` should Set rX = rY - rZ', function() {
+		let instruction = 0b0111000100100011
+		state.registers[2] = 0xFF
+		state.registers[3] = 0x1
+		state = vm.opcodes.sub(state, instruction)
+		assert(
+			state.registers[1] == 0xFE,
+			`${state.registers[1]} == 0xFE`
+		)
+	})
+	it('`sub` should overflow gracefully', function() {
+		let instruction = 0b0110000100100011
+		state.registers[2] = 0x01
+		state.registers[3] = 0x02
+		state = vm.opcodes.sub(state, instruction)
+		assert(
+			state.registers[1] == 0xFF,
+			`${state.registers[1]} == 0xFF`
+		)
+	})
+	it('`mul` should Set rX = rY * rZ', function() {
+		let instruction = 0b1000000100100011
+		state.registers[2] = 0x02
+		state.registers[3] = 0x03
+		state = vm.opcodes.mul(state, instruction)
+		assert(
+			state.registers[1] == 0x06,
+			`${state.registers[1]} == 0x06`
+		)
+	})
+	it('`mul` should overflow gracefully', function() {
+		let instruction = 0b1000000100100011
+		state.registers[2] = 0x81
+		state.registers[3] = 0x02
+		state = vm.opcodes.mul(state, instruction)
+		assert(
+			state.registers[1] == 0x02,
+			`${state.registers[1]} == 0x02`
+		)
+	})
+	it('`div` should Set rX = rY / rZ', function() {
+		let instruction = 0b1001000100100011
+		state.registers[2] = 0x10
+		state.registers[3] = 0x02
+		state = vm.opcodes.div(state, instruction)
+		assert(
+			state.registers[1] == 0x08,
+			`${state.registers[1]} == 0x08`
+		)
+	})
+	it('`mod` should Set rX = rY % rZ', function() {
+		let instruction = 0b1010000100100011
+		state.registers[2] = 0x07
+		state.registers[3] = 0x03
+		state = vm.opcodes.mod(state, instruction)
+		assert(
+			state.registers[1] == 0x01,
+			`${state.registers[1]} == 0x01`
+		)
+	})
 	it('`jump` should Set program counter to address in rX', function() {
 		state.registers[1] = 0xFF
 		state = vm.opcodes.jump(state, 0b0000000100000011)

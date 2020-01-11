@@ -49,19 +49,83 @@ const storer = function(state, instruction) {
 	state.memory[state.registers[ry]] = state.registers[rx]
 	return clone(state)
 }
-const popr = function(state, instruction) {}
-const pushr = function(state, instruction) {}
-const loadn = function(state, instruction) {}
-const storen = function(state, instruction) {}
-const addn = function(state, instruction) {}
-const noop = function(state, instruction) {}
-const copy = function(state, instruction) {}
-const add = function(state, instruction) {}
-const neg = function(state, instruction) {}
-const sub = function(state, instruction) {}
-const mul = function(state, instruction) {}
-const div = function(state, instruction) {}
-const mod = function(state, instruction) {}
+const popr = function(state, instruction) {
+	const rx = getFirstNibble(instruction)
+	const ry = getSecondNibble(instruction)
+	state.registers[ry] -= 1
+	state.registers[rx] = state.memory[state.registers[ry]]
+	return clone(state)
+}
+const pushr = function(state, instruction) {
+	const rx = getFirstNibble(instruction)
+	const ry = getSecondNibble(instruction)
+	state.memory[state.registers[ry]] = state.registers[rx]
+	state.registers[ry] += 1
+	return clone(state)
+}
+const loadn = function(state, instruction) {
+	let int8 = getUint8(instruction)
+	let rx = getFirstNibble(instruction)
+	state.registers[rx] = state.memory[int8]
+	return clone(state)
+}
+const storen = function(state, instruction) {
+	let int8 = getUint8(instruction)
+	let rx = getFirstNibble(instruction)
+	state.memory[int8] = state.registers[rx]
+	return clone(state)
+}
+const addn = function(state, instruction) {
+	let int8 = getUint8(instruction)
+	let rx = getFirstNibble(instruction)
+	state.registers[rx] += int8
+	return clone(state)
+}
+const noop = function(state, instruction) {
+	return state
+}
+const neg = noop
+const copy = function(state, instruction) {
+	let rx = getFirstNibble(instruction)
+	let ry = getSecondNibble(instruction)
+	state.registers[rx] = state.registers[ry]
+	return clone(state)
+}
+const add = function(state, instruction) {
+	let rx = getFirstNibble(instruction)
+	let ry = getSecondNibble(instruction)
+	let rz = getThirdNibble(instruction)
+	state.registers[rx] = state.registers[ry] + state.registers[rz]
+	return clone(state)
+}
+const sub = function(state, instruction) {
+	let rx = getFirstNibble(instruction)
+	let ry = getSecondNibble(instruction)
+	let rz = getThirdNibble(instruction)
+	state.registers[rx] = state.registers[ry] - state.registers[rz]
+	return clone(state)
+}
+const mul = function(state, instruction) {
+	let rx = getFirstNibble(instruction)
+	let ry = getSecondNibble(instruction)
+	let rz = getThirdNibble(instruction)
+	state.registers[rx] = state.registers[ry] * state.registers[rz]
+	return clone(state)
+}
+const div = function(state, instruction) {
+	let rx = getFirstNibble(instruction)
+	let ry = getSecondNibble(instruction)
+	let rz = getThirdNibble(instruction)
+	state.registers[rx] = Math.floor(state.registers[ry] / state.registers[rz])
+	return clone(state)
+}
+const mod = function(state, instruction) {
+	let rx = getFirstNibble(instruction)
+	let ry = getSecondNibble(instruction)
+	let rz = getThirdNibble(instruction)
+	state.registers[rx] = state.registers[ry] % state.registers[rz]
+	return clone(state)
+}
 const call = function(state, instruction) {}
 const jumpn = function(state, instruction) {}
 const jeqz = function(state, instruction) {}
@@ -82,6 +146,7 @@ const opcodes = {
 	'popr': popr,
 	'pushr': pushr,
 	'loadn': loadn,
+	'storen': storen,
 	'addn': addn,
 	'copy': copy,
 	'add': add,
@@ -104,7 +169,7 @@ const getCleanState = function() {
 	let running = false
 	let program = new Uint16Array(256)
 	let programPointer = 0x0000
-	let memory = new Uint16Array(8)
+	let memory = new Uint8Array(8)
 	let memoryPointer = 0x0000
 	let stack = new Uint16Array(8)
 	let stackPointer = 0x0000
