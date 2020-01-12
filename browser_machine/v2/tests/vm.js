@@ -1,6 +1,25 @@
 const assert = require('chai').assert
 const vm = require('../lib/vm.js')
 
+describe('Testing predictable incompatibilities', function() {
+	let state
+	beforeEach(function() {
+		state = vm.getCleanState()
+  })
+	it('`read` should be alias for `nop`', function() {
+		let instruction = 0b0000000000000001
+		let oldState = Object.assign({}, state)
+		state = vm.opcodes.read(state, instruction)
+		assert.deepEqual(state, oldState)
+	})
+	it('`write` should be alias for `nop`', function() {
+		let instruction = 0b0000000000000010
+		let oldState = Object.assign({}, state)
+		state = vm.opcodes.write(state, instruction)
+		assert.deepEqual(state, oldState)
+	})
+})
+
 describe('Testing the machine code parsing', function() {
 	const opCodeTest = {
 		0b0: 'halt',
@@ -13,8 +32,9 @@ describe('Testing the machine code parsing', function() {
 		0b0100000000000010: 'popr',
 		0b0100000000000011: 'pushr',
 		0b0010000000000000: 'loadn',
+		0b0011000000000000: 'storen',
 		0b0101000000000000: 'addn',
-		0b0110000000000000: 'copy',
+		0b0110000100100000: 'copy',
 		0b0110000000000001: 'add',
 		0b0111000000000000: 'neg',
 		0b0111000000010000: 'sub',
@@ -22,12 +42,12 @@ describe('Testing the machine code parsing', function() {
 		0b1001000000000000: 'div',
 		0b1010000000000000: 'mod',
 		0b0000000000000011: 'jump',
-		0b1011000000000000: 'jumpn',
+		0b1011000011111111: 'jumpn',
 		0b1100000000000000: 'jeqz',
 		0b1101000000000000: 'jnez',
 		0b1110000000000000: 'jgtz',
 		0b1111000000000000: 'jltz',
-		0b1011000000000000: 'call',
+		0b1011000100000000: 'call',
 	}
 	it('should recognize the opcode', function(done) {
 		Object.keys(opCodeTest).forEach(function(opcode) {

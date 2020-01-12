@@ -11,7 +11,7 @@ const clone = function(object) {
 }
 // OPCODES
 const nop = function(state, instruction) {
-	return state
+	return clone(state)
 }
 const neg = nop
 const jgtz = nop
@@ -153,8 +153,6 @@ const jnez = function(state, instruction) {
 	return clone(state)
 }
 
-
-
 // Dictionary between mneumonic and actual function
 const opcodes = {
 	'halt': halt,
@@ -242,7 +240,7 @@ const getOpcode = function(instruction) {
 		case 0b0101:
 			return 'addn'
 		case 0b0110:
-			if (instruction & 0xFFF == 0x000) {
+			if ((instruction & 0xFFF) == 0x000) {
 				return 'nop'
 			} else if ((instruction & 0b1111) == 0b0000) {
 				return 'copy'
@@ -262,10 +260,10 @@ const getOpcode = function(instruction) {
 		case 0b1010:
 			return 'mod'
 		case 0b1011:
-			if((instruction & 0xF) == 0x0) {
-				return 'call'
-			} else if((instruction >> 8) == 0b0000) {
+			if(((instruction >> 8) & 0xF) == 0x0) {
 				return 'jumpn'
+			} else {
+				return 'call'
 			}
 		case 0b1100:
 			return 'jeqz'
