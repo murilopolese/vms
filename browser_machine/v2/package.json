@@ -4,16 +4,17 @@
   "description": "https://www.cs.hmc.edu/~cs5grad/cs5/hmmm/documentation/documentation.html",
   "main": "test.js",
   "dependencies": {
+    "browserify": "^16.5.0",
     "chai": "^4.2.0",
-    "esprima": "^4.0.1"
-  },
-  "devDependencies": {
-    "mocha": "^6.2.2",
-    "nyc": "^15.0.0"
+    "esprima": "^4.0.1",
+    "watchify": "^3.11.1",
+		"mocha": "^6.2.2",
+		"nyc": "^15.0.0"
   },
   "scripts": {
     "test": "mocha tests",
-    "coverage": "nyc mocha tests"
+    "coverage": "nyc mocha tests",
+		"watch-raw": "watchify ./ui/raw/main.js -o ./ui/raw/dist.js"
   },
   "author": "",
   "license": "ISC"

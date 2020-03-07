@@ -1,0 +1,64 @@
+body {
+	margin: 10px;
+	font-family: monospace;
+	font-size: 14px;
+	background: blue;
+	color: yellow;
+}
+input[type="text"],
+input[type="range"],
+button {
+	font-family: monospace;
+	border: none;
+	background: none;
+	outline: none;
+	color: yellow;
+	font-size: inherit;
+}
+input[type="range"] {
+	-webkit-appearance: none;
+	height: 5px;
+	background: yellow;
+	border: none;
+}
+input[type="range"]::-webkit-slider-thumb,
+input[type="range"]::-moz-range-thumb {
+	border: none;
+	outline: none;
+	-webkit-appearance: none;
+	height: 15px;
+	background: yellow;
+}
+hr {
+	border-color: yellow;
+}
+
+.table {
+	display: flex;
+	align-items: flex-start;
+	justify-content: flex-start;
+	flex-direction: column;
+	flex-wrap: wrap;
+	max-height: 380px;
+	overflow-y: none;
+	overflow-x: scroll;
+}
+.address.selected {
+	font-weight: bold;
+	background: yellow;
+	color: blue;
+}
+.address.selected .value {
+	color: blue;
+	font-weight: bold;
+}
+.address .index {
+	display: inline-block;
+	min-width: 30px;
+}
+.address .value {
+	display: inline-block;
+	background: none;
+	border: none;
+	width: 140px;
+}

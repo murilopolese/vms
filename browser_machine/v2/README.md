@@ -4,7 +4,7 @@ This is a browser based ecosystem for the [HMMM](https://www.cs.hmc.edu/~cs5grad
 
 The goal of this project is to have:
 
-- An *assembler* that takes high level programming languages and turn it into HMMM instructions.
+- An *interpreter* that takes high level programming languages and turn it into HMMM instructions.
 - A *compiler* that takes ASCII assembly instructions and transform it into bytecode
 - A *bytecode interpreter* or *virtual machine* that takes bytecode as an `ArrayBuffer` and execute it altering another sections of the `ArrayBuffer` representing registers, memory, etc...
 

@@ -1,32 +1,5 @@
 const esprima = require('esprima')
 
-// This dictionary/hash maps variables to address memories
-let variables = {
-	'servo1': 0xF000, 'servo2': 0xF001, 'leftEye': 0xF002,
-}
-// Initial variable offset (this is used to calculate new variable addresses)
-let nameOffset = 0x0
-// Will return variable address. It generates an address if variable doesn't exist
-function getVariableAddress(name) {
-	if(variables[name] === undefined) {
-		variables[name] = nameOffset
-		nameOffset += 1
-	}
-	return variables[name]
-}
-// This dictionary/hash maps functions to address memories
-let functions = {}
-// Initial variable offset (this is used to calculate new variable addresses)
-let functionOffset = 0x0
-// Will return variable address. It generates an address if variable doesn't exist
-function getFunctionAddress(name) {
-	if(functions[name] === undefined) {
-		functions[name] = functionOffset
-		functionOffset += 1
-	}
-	return functions[name]
-}
-
 /**
  * Takes a string with a javascript program and makes it into a javascript
  * AST. This is mostly a proxy to esprima functionalities

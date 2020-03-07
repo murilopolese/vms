@@ -1,4 +1,4 @@
-const assembler = require('./lib/assembler.js')
+const assemble = require('./lib/interpreter.js')
 
 let script = `
 var a
@@ -22,5 +22,5 @@ function test(a, b, c, d) {
 }
 test(1, 2, 3, 4)
 `
-let result = assembler(script)
+let result = assemble(script)
 console.log(result)
