@@ -1,0 +1,48 @@
+body {
+	margin: 10px;
+	font-family: monospace;
+	font-size: 14px;
+	background: violet;
+	color: purple;
+	max-width: 1000px;
+	width: 100%;
+	margin: 0 auto;
+	font-size: 32px;
+}
+textarea {
+	padding: 16px;
+	width: 100%;
+	height: 100%;
+	border: solid 16px purple;
+	outline: none;
+	background: none;
+	font-family: monospace;
+	box-sizing: border-box;
+	font-size: 32px;
+	color: purple;
+	font-weight: bold;
+}
+button.key {
+	border: solid 8px purple;
+	padding: 0.5em;
+	cursor: pointer;
+	background: white;
+	font-family: monospace;
+	font-size: 22px;
+	box-sizing: border-box;
+}
+.logo {
+	font-size: 16px;
+	display: inline-block;
+	font-weight: bold;
+	width: 200px;
+}
+#screen {
+	height: 300px;
+}
+#printer {
+	width: 100%;
+}
+#keyboard {
+	padding: 8px;
+}

@@ -312,14 +312,6 @@ module.exports = vm
 
 },{}],2:[function(require,module,exports){
 const vm = require('../../lib/vm')
-let state = vm.getCleanState()
-
-let getCurrentInstruction = function(state) {
-	return state.program[state.programPointer]
-}
-let getCurrentOpcode = function(instruction) {
-	return vm.getOpcode(instruction)
-}
 
 const bin = function(n, size) {
 	let b = (n>>>0).toString(2)
@@ -338,156 +330,116 @@ const int = function(b) {
 	}
 	return n
 }
-const renderAddress = function(data, i, sel) {
-	return `
-	<div class="address ${i==sel ? 'selected' : ''}" id="address-${i}">
-		<span class="index">${i}</span>
-		<input type="text"
-		class="value"
-		name="${i}"
-		value="${bin(data, 16)}"
-		onchange="changeAddress(this)"
-		/>
-	</div>
-	`
-}
-const renderProgramPointer = function(data, i, sel) {
-	return `
-	<div class="address" id="address-pp">
-		<span class="index">Program Pointer</span>
-		<input type="text"
-		class="value"
-		name="pp"
-		value="${bin(data, 16)}"
-		onchange="changeProgramPointer(this)"
-		/>
-	</div>
-	`
-}
 
-const renderTable = function(data, pointer) {
-	let table = []
-	for(i in data) {
-		table.push(renderAddress(data[i], i, pointer))
-	}
-	return `
-		<div class="table">
-			${table.join('')}
-		</div>
-	`
-}
-
-let programTable = document.querySelector('#program') || {}
-let memoryTable = document.querySelector('#memory') || {}
-let registersTable = document.querySelector('#registers') || {}
-let cockpit = document.querySelector('#cockpit') || {}
-
-let clockSpeed = 1000
-let clockTicks = 0
-window.interval = 0
-
-function render() {
-programTable.innerHTML = `
-<h2>Program</h2>
-${renderProgramPointer(state.programPointer)}
-<hr />${renderTable(state.program, state.programPointer)}<hr />
-`
-
-memoryTable.innerHTML = `
-<h2>Memory</h2>
-${renderAddress(state.memoryPointer, 'Memory Pointer')}
-<hr />${renderTable(state.memory, state.memoryPointer)}<hr />
-`
-
-registersTable.innerHTML = `
-<h2>Registers</h2>
-<hr />${renderTable(state.registers)}<hr />
-`
-cockpit.innerHTML = `
-<h2>Cockpit</h2>
-<div>
-	<button onclick="execute()">Execute</button>
-	<button onclick="run()">Run</button>
-	<button onclick="stop()">Stop</button>
-	<label>
-		Clock speed:
-		<input name="clockSpeed" type="range" min="100" max="2000" value="${clockSpeed}" onchange="clockChange(this.value)" />
-	</label>
-	<label>
-		Clock ticks:
-		<span id="clockTicks">${clockTicks}</span>
-	</label>
-	<input type="file" onchange="changeBinaryFile(this)" name="binfile" />
-</div>
-<h5>
-	Current program pointer: ${state.programPointer} <br />
-	Current program instruction: ${getCurrentOpcode(getCurrentInstruction(state))}
-</h5>
-`
-}
-render()
-
-window.execute = function() {
-	let instruction = getCurrentInstruction(state)
-	let opcode = getCurrentOpcode(instruction)
-	if (opcode === 'halt') {
-		clearInterval(window.interval)
+const getNumber = (n) => {
+	if (n) {
+		if (n.slice(0, 2) === '0x') {
+			return parseInt(n, 16)
+		} else if (n.slice(0, 2) === '0b') {
+			return parseInt(n, 2)
+		} else {
+			return parseInt(n, 10)
+		}
 	} else {
-		state.programPointer++
-		clockTicks++
+		return 0
 	}
-	state = vm.opcodes[opcode](state, instruction)
-	console.log('executed', opcode, instruction)
-	render()
 }
-window.run = function() {
-	console.log('run')
-	window.interval = setInterval(
-		function() {
-			execute()
-		},
-		clockSpeed
-	)
-}
-window.stop = function() {
-	clockTicks = 0
-	state.running = false
-	state.programPointer = 0
-	clearInterval(window.interval)
-	console.log('stoped')
-	render()
-}
-window.clockChange = function(val) {
-	clockSpeed = val
-	console.log('clockChanged', val)
-	render()
-}
-window.changeAddress = function(e) {
-	let index = e.getAttribute('name') || 0
-	let instruction = int(e.value)
-	state.program[index] = instruction
-	render()
-}
-window.changeProgramPointer = function(e) {
-	state.programPointer = int(e.value)
-	render()
-}
-window.changeBinaryFile = function(e) {
-	let file = e.files[0]
-	let reader = new FileReader()
-	reader.readAsText(file, 'UTF-8')
-	reader.onload = function (evt) {
-		let result = evt.target.result
-		let instructions = result.replace(`\n`, ` `)
-		instructions = instructions.split(` `)
-		state.program = instructions.map((i) => {
-			return parseInt(i, 16)
-		})
-		render()
+
+const assembleInstruction = function(line) {
+	let words = line.split(` `)
+	words[1] = getNumber(words[1])
+	words[2] = getNumber(words[2])
+	switch (words[0]) {
+		case 'halt':
+			return 0
+			break
+		case 'noop':
+			return 0b0110000000000000
+			break
+		case 'setn':
+		  return ( ( (0b1 << 4) | words[1] ) << 8 ) | words[2]
+			break
+		case 'loadr':
+		  return ( ( ( (0b0100 << 4) | words[1] ) << 4 ) | words[2] ) << 4
+			break
+		case 'storer':
+		  return ( ( ( ( (0b0100 << 4) | words[1] ) << 4 ) | words[2] ) << 4 ) | 1
+			break
+		case 'popr':
+		  return ( ( ( ( (0b0100 << 4) | words[1] ) << 4 ) | words[2] ) << 4 ) | 2
+			break
+		case 'pushr':
+		  return ( ( ( ( (0b0100 << 4) | words[1] ) << 4 ) | words[2] ) << 4 ) | 3
+			break
+		case 'setn':
+		  return ( ( (0b0010 << 4) | words[1] ) << 8 ) | words[2]
+			break
+		case 'storen':
+		  return ( ( (0b0011 << 4) | words[1] ) << 8 ) | words[2]
+			break
+		case 'addn':
+		  return ( ( (0b0101 << 4) | words[1] ) << 8 ) | words[2]
+			break
+		case 'copy':
+		  return ( ( ( (0b0110 << 4) | words[1] ) << 4 ) | words[2] ) << 4
+			break
+		case 'add':
+		  return ( ( ( ( (0b0110 << 4) | words[1] ) << 4 ) | words[2] ) << 4 ) | words[3]
+			break
+		case 'sub':
+		  return ( ( ( ( (0b0111 << 4) | words[1] ) << 4 ) | words[2] ) << 4 ) | words[3]
+			break
+		case 'mul':
+		  return ( ( ( ( (0b1000 << 4) | words[1] ) << 4 ) | words[2] ) << 4 ) | words[3]
+			break
+		case 'div':
+		  return ( ( ( ( (0b1001 << 4) | words[1] ) << 4 ) | words[2] ) << 4 ) | words[3]
+			break
+		case 'mod':
+		  return ( ( ( ( (0b1010 << 4) | words[1] ) << 4 ) | words[2] ) << 4 ) | words[3]
+			break
+		case 'jump':
+		  return ( ( (0b0 << 4) | words[1] ) << 8 ) | 0b11
+			break
+		case 'jumpn':
+		  return (0b1011 << 12) | words[1]
+			break
+		case 'jeqz':
+		  return ( ( (0b1100 << 4) | words[1] ) << 8 ) | words[2]
+			break
+		case 'jnez':
+		  return ( ( (0b1101 << 4) | words[1] ) << 8 ) | words[2]
+			break
+		case 'jgtz':
+		  return ( ( (0b1110 << 4) | words[1] ) << 8 ) | words[2]
+			break
+		case 'jltz':
+		  return ( ( (0b1111 << 4) | words[1] ) << 8 ) | words[2]
+			break
+		case 'call':
+		  return ( ( (0b1011 << 4) | words[1] ) << 8 ) | words[2]
+			break
+		default:
+		return 0
 	}
-	reader.onerror = function (evt) {
-		console.log("error reading file")
-	}
+}
+
+window.compile = function() {
+	let textarea = document.getElementById('screen')
+	let printer = document.getElementById('printer')
+	let code = textarea.value.split(`\n`)
+	code.unshift('noop')
+	console.log(code.join(' '))
+	code = code.map((line) => assembleInstruction(line))
+	console.log(code.map(n => bin(n, 16)).join(' '))
+	code = code.map((line) => `0x${line.toString(16)}`)
+	console.log(code.join(' '))
+
+	printer.innerText = 'HEX Output: \n'
+	code.forEach((line, i) => {
+		printer.innerHTML += line
+		printer.innerHTML += ` `
+	})
 }
 
 },{"../../lib/vm":1}]},{},[2]);

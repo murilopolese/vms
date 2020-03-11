@@ -71,7 +71,7 @@ let cockpit = document.querySelector('#cockpit') || {}
 
 let clockSpeed = 1000
 let clockTicks = 0
-let interval = 0
+window.interval = 0
 
 function render() {
 programTable.innerHTML = `
@@ -118,7 +118,7 @@ window.execute = function() {
 	let instruction = getCurrentInstruction(state)
 	let opcode = getCurrentOpcode(instruction)
 	if (opcode === 'halt') {
-		clearInterval(interval)
+		clearInterval(window.interval)
 	} else {
 		state.programPointer++
 		clockTicks++
@@ -129,7 +129,7 @@ window.execute = function() {
 }
 window.run = function() {
 	console.log('run')
-	interval = setInterval(
+	window.interval = setInterval(
 		function() {
 			execute()
 		},
@@ -140,7 +140,7 @@ window.stop = function() {
 	clockTicks = 0
 	state.running = false
 	state.programPointer = 0
-	clearInterval(interval)
+	clearInterval(window.interval)
 	console.log('stoped')
 	render()
 }

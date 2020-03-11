@@ -14,7 +14,8 @@
   "scripts": {
     "test": "mocha tests",
     "coverage": "nyc mocha tests",
-		"watch-raw": "watchify ./ui/raw/main.js -o ./ui/raw/dist.js"
+		"watch-raw": "watchify ./ui/raw/main.js -o ./ui/raw/dist.js",
+		"watch-assembly": "watchify ./ui/assembly/main.js -o ./ui/assembly/dist.js"
   },
   "author": "",
   "license": "ISC"
