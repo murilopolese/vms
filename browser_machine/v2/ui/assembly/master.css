@@ -26,7 +26,8 @@ button.key {
 	border: solid 8px purple;
 	padding: 0.5em;
 	cursor: pointer;
-	background: white;
+	background: purple;
+	color: violet;
 	font-family: monospace;
 	font-size: 22px;
 	box-sizing: border-box;
