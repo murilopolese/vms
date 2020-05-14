@@ -1,0 +1,82 @@
+:root {
+	font-size: 3vh;
+}
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background: #333;
+	display: flex;
+	min-width: 100%;
+	min-height: 100vh;
+}
+
+#shape {
+	position: relative;
+	background: #ccc;
+	width: 50vh;
+	height: 80vh;
+	margin: auto;
+	border-radius: 0.5em;
+	box-shadow: 5px 5px #222;
+	display: flex;
+	flex-wrap: wrap;
+	padding: 1vh;
+	min-width: 300px;
+}
+#shape:after {
+	content: 'v1';
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	font-family: monospace;
+	font-size: 0.5rem;
+	color: #333;
+	padding: 0.25rem;
+}
+
+.canvas {
+	display: block;
+	width: 100%;
+	height: 50%;
+	background: #888;
+	color: black;
+	font-family: monospace;
+	font-size: 0.8rem;
+	padding: 1rem;
+	line-height: 1rem;
+	overflow: scroll;
+}
+
+.canvas .highlight {
+	background: black;
+	color: #ccc;
+	border-radius: 0.3rem;
+	padding: 0.1rem 0;
+}
+
+.keyboard {
+	text-align: center;
+}
+
+button {
+	font-size: 3vh;
+	margin: 0;
+	padding: 0;
+	border-radius: 0.3em;
+	background: #666;
+	width: 7vh;
+	height: 7vh;
+	margin: 0.7vh;
+	border: none;
+	box-shadow: 2px 2px #aaa;
+	cursor: pointer;
+	color: #ccc;
+}
+
+button:active {
+	box-shadow: none;
+	transform: translate(1px, 1px);
+}
