@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Brainflux</title>
+    <style media="screen">
+      * { box-sizing: border-box; }
+      :root {
+        font-size: 2.5vh;
+      }
+      body {
+        margin: 0;
+        background: blue;
+        color: white;
+        font-family: monospace;
+        font-size: 1.2rem;
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        font-weight: bold;
+      }
+      ::selection {
+        background-color: white;
+        color: blue;
+      }
+      textarea::selection {
+        background-color: blue;
+        color: white;
+      }
+      #app {
+        padding: 2rem;
+        width: 100%;
+        max-width: 720px;
+        margin: auto;
+      }
+      textarea, input, button {
+        background: none;
+        color: inherit;
+        border: double white;
+        font-size: 1.2rem;
+        font-family: monospace;
+        padding: 0.5rem;
+        font-weight: bold;
+      }
+      textarea:focus,
+      button:active {
+        background: white;
+        color: blue;
+      }
+      div, p, pre {
+        margin: 0.5rem 0;
+      }
+      p, pre, form {
+        max-width: 100%;
+        overflow-x: scroll;
+        margin: 0;
+        padding: 0;
+      }
+      textarea {
+        width: 100%;
+        height: 3rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="text/javascript" src="./brainflux.js"></script>
+    <script type="text/javascript" src="./framework.js"></script>
+    <script>
+      let code = '+>++[>+++[>+++<-]<-]'
+      window.clock = 0
+      let b = new BrainFlux('');
+      const Panel = () => h('div', {},
+        h('p', {}, `Program Pointer: ${b.programPointer}`),
+        h('p', {}, `Instruction: ${b.program[b.programPointer]}`),
+        h('p', {}, `Memory Pointer: ${b.memoryPointer}`),
+        h('p', {}, `Memory Value: ${b.memory[b.memoryPointer]}`),
+        h('p', {}, `Stack: ${b.stack}`),
+      )
+      const Memory = () => h('div', {},
+        h('pre', {},
+          b.memory.map((v) => `[ ${v.toString().padStart(3, 0)} ]`).join(' ') + '\n',
+          b.memory.map((v, i) => `~~~${i===b.memoryPointer? '^' : '~'}~~~`).join('~')
+        )
+      )
+      const Program = () => h('div', {},
+        h('pre', {},
+          b.program.map((v) => `${v.toString()}`).join(' ') + '\n',
+          b.program.map((v, i) => `${i===b.programPointer? '^' : '~'}`).join('~')
+        )
+      )
+      const Form = () => h('form', { submit: (e) => e.preventDefault() },
+        h('textarea', { change: changeCode }, code),
+        h('button', { type: 'submit', name: 'load', click: loadProgram }, 'Load'),
+        h('button', { type: 'submit', name: 'stop', click: stopProgram }, 'Stop'),
+        h('button', { type: 'submit', name: 'step', click: stepProgram}, 'Step'),
+        h('button', { type: 'submit', name: 'run', click: runProgram }, 'Run')
+      )
+
+      function changeCode(e) {
+        code = e.target.value
+      }
+      function loadProgram() {
+        stopProgram()
+        b = new BrainFlux(code)
+        renderAll()
+      }
+      function stepProgram() {
+        stopProgram()
+        try {
+          b.step()
+        } catch (e) {
+          console.log(e.message)
+        }
+        renderAll()
+      }
+      function runProgram() {
+        stopProgram()
+        window.clock = setInterval(function() {
+          try {
+            b.step()
+          } catch (e) {
+            console.log(e.message)
+            clearInterval(window.clock)
+          }
+          renderAll()
+        }, 300)
+      }
+      function stopProgram() {
+        clearInterval(window.clock)
+      }
+
+      function renderAll() {
+        render('#app', h('div', {},
+          Panel(),
+          Memory(),
+          Program(),
+          Form()
+        ))
+      }
+      renderAll()
+
+    </script>
+  </body>
+</html>
