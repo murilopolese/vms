@@ -1,0 +1,39 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  background: black;
+  /* padding-bottom: 50vh; */
+  margin: 0;
+  text-align: center;
+  color: #EDC7B0;
+  font-family: monospace;
+}
+
+main {
+  width: 100vw;
+}
+
+canvas {
+  margin: auto;
+  max-height: 100%;
+}
+
+select,
+input,
+button {
+  border: solid 1px white;
+  cursor: pointer;
+  background: black;
+  color: white;
+  padding: 0.5em;
+}
+button:hover {
+  background: white;
+  color: black;
+}
+
+.menu {
+  padding: 1em;
+  margin-top: 1em;
+}

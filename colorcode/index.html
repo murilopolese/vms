@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Coding with colors</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="menu">
+    <button id="play">PLAY</button>
+    <button id="edit">EDIT</button>
+    <button id="code">CODE</button>
+    <button id="save">SAVE</button>
+    <button id="reset">RESET</button>
+    <label for="color">Color #</label>
+    <input id="color" type="number" value="1" min="-1" max="15" step="1">
+    <br>
+    <br>
+    <label for="event">Event</label>
+    <select id="event">
+      <option value="tick">Clock tick</option>
+      <option value="up">Arrow up</option>
+      <option value="down">Arrow down</option>
+      <option value="left">Arrow left</option>
+      <option value="right">Arrow right</option>
+      <option value="a">Button A</option>
+      <option value="b">Button B</option>
+    </select>
+    <label for="rule">Rule #</label>
+    <input id="rule" type="number" value="0" min="0" max="15" step="1">
+  </div>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/p5.min.js'></script><script  src="./script.js"></script>
+</body>
+</html>
