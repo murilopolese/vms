@@ -1,7 +1,7 @@
 // https://www.microsoft.com/en-us/research/publication/tilecode-creation-of-video-games-on-gaming-handhelds/
 
-let cols = 9
-let rows = 9
+let cols = 16
+let rows = 16
 let res
 
 // based on TIC80
@@ -27,10 +27,6 @@ for (let i = 0; i < cols; i++) {
   tileMap[rows-1][i] = 3
   tileMap[i][cols-1] = 3
 }
-
-// tileMap[2][2] = 4
-// tileMap[2][1] = 5
-// tileMap[4][3] = 1
 
 let emptyRule = [
   [ // when
@@ -164,20 +160,38 @@ let currentRule = 0
 let currentEvent = 'tick'
 
 function setup() {
-  try {
-    // get rules from local localStorage
-    let savedRules = localStorage.getItem('rules')
-    if (savedRules) {
-      rules = JSON.parse(savedRules)
+  // Persist on URL
+  let data = new URLSearchParams(window.location.search)
+  let dataTileMap = data.get('tileMap')
+  let dataRules = data.get('rules')
+  if (dataTileMap && dataRules) {
+    try {
+      tileMap = JSON.parse(dataTileMap)
+      rules = JSON.parse(dataRules)
+      console.log('Data loaded!')
+    } catch (e) {
+      console.log('Could not load data from url')
+      console.log(e)
     }
-    let savedMap = localStorage.getItem('tileMap')
-    if (savedMap) {
-      tileMap = JSON.parse(savedMap)
-    }
-  } catch(e) {
-    console.log('could not load rules from local storage')
-    console.log(e)
+  } else {
+    console.log('No data on the url')
   }
+  // Persist on local storage:
+  // try {
+  //   // get rules from local localStorage
+  //   let savedRules = localStorage.getItem('rules')
+  //   if (savedRules) {
+  //     rules = JSON.parse(savedRules)
+  //   }
+  //   let savedMap = localStorage.getItem('tileMap')
+  //   if (savedMap) {
+  //     tileMap = JSON.parse(savedMap)
+  //   }
+  // } catch(e) {
+  //   console.log('could not load rules from local storage')
+  //   console.log(e)
+  // }
+
   createCanvas(min(windowHeight, 500), min(windowHeight, 500))
   res = width/cols
   background(colors[0])
@@ -189,13 +203,12 @@ function setup() {
   codeButtton.addEventListener('click', () => view = 'code')
   saveButtton = document.querySelector('#save')
   saveButtton.addEventListener('click', () => {
-    localStorage.setItem('rules', JSON.stringify(rules))
-    localStorage.setItem('tileMap', JSON.stringify(tileMap))
+    let url = `?tileMap=${encodeURIComponent(JSON.stringify(tileMap))}&rules=${encodeURIComponent(JSON.stringify(rules))}`
+    window.location.search = url
   })
   resetButton = document.querySelector('#reset')
   resetButton.addEventListener('click', () => {
-    localStorage.setItem('rules', '')
-    localStorage.setItem('tileMap', '')
+    window.location = window.location.pathname
   })
 
   colorSelector = document.querySelector('#color')
