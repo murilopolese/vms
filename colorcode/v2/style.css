@@ -1,0 +1,14 @@
+body {
+  margin: 0;
+  background: #4c6077;
+}
+
+main {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+}
+
+canvas {
+  margin: auto;
+}

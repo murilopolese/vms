@@ -158,6 +158,7 @@ let view = 'edit'
 let selectedColor = 0
 let currentRule = 0
 let currentEvent = 'tick'
+let cursor = [3, 3]
 
 function setup() {
   // Persist on URL
@@ -195,14 +196,14 @@ function setup() {
   createCanvas(min(windowHeight, 500), min(windowHeight, 500))
   res = width/cols
   background(colors[0])
-  playButtton = document.querySelector('#play')
-  playButtton.addEventListener('click', () => view = 'play')
-  editButtton = document.querySelector('#edit')
-  editButtton.addEventListener('click', () => view = 'edit')
-  codeButtton = document.querySelector('#code')
-  codeButtton.addEventListener('click', () => view = 'code')
-  saveButtton = document.querySelector('#save')
-  saveButtton.addEventListener('click', () => {
+  playButton = document.querySelector('#play')
+  playButton.addEventListener('click', () => view = 'play')
+  editButton = document.querySelector('#edit')
+  editButton.addEventListener('click', () => view = 'edit')
+  codeButton = document.querySelector('#code')
+  codeButton.addEventListener('click', () => view = 'code')
+  saveButton = document.querySelector('#save')
+  saveButton.addEventListener('click', () => {
     let url = `?tileMap=${encodeURIComponent(JSON.stringify(tileMap))}&rules=${encodeURIComponent(JSON.stringify(rules))}`
     window.location.search = url
   })
@@ -275,13 +276,20 @@ function draw() {
       break
     case 'edit':
       drawGame()
+      drawCursor()
       break
     case 'code':
       drawCode()
+      drawCursor()
       break
     default:
       background(colors[0])
   }
+}
+
+function drawCursor() {
+  fill(255, 100)
+  square(cursor[0]*res, cursor[1]*res, res)
 }
 
 function drawGame() {
@@ -389,6 +397,7 @@ function matchRule(around, when) {
 }
 
 function mouseClicked() {
+  return
   if (mouseX > width || mouseX < 0 || mouseY > height || mouseY < 0) return
   let x = parseInt(mouseX/res)
   let y = parseInt(mouseY/res)
@@ -396,6 +405,8 @@ function mouseClicked() {
   if (view === 'edit') {
     if (x>=0 && x<cols && y>=0 && y<rows) {
       tileMap[y][x] = selectedColor<0?0:selectedColor
+      selectedColor += 1
+      selectedColor %= colors.length
     }
   }
   if (view === 'code') {
@@ -411,6 +422,15 @@ function mouseClicked() {
 }
 
 function keyPressed() {
+  let [x, y] = cursor
+  // if (key === 'Tab') {
+  //   switch (view) {
+  //     case 'play': view = 'edit'; break
+  //     case 'edit': view = 'code'; break
+  //     case 'code': view = 'play'; break
+  //   }
+  //   return
+  // }
   if (view === 'play') {
     switch(key) {
       case 'ArrowRight':
@@ -431,6 +451,57 @@ function keyPressed() {
       case 'x':
         updateGame('b')
         break
+    }
+  } else {
+    // Move cursor
+    switch(key) {
+      case 'ArrowRight':
+        cursor[0] += 1
+        cursor[0] %= cols
+        break
+      case 'ArrowLeft':
+        cursor[0] = (cols + cursor[0] - 1) % cols
+        break
+      case 'ArrowUp':
+        cursor[1] = (rows + cursor[1] - 1) % rows
+        break
+      case 'ArrowDown':
+        cursor[1] += 1
+        cursor[1] %= rows
+        break
+    }
+    // A and B buttons
+    if (view === 'edit') {
+      switch(key) {
+        case 'z':
+          tileMap[y][x] = selectedColor<0?null:selectedColor
+          break
+        case 'x':
+          tileMap[y][x] = 0
+          break
+      }
+    }
+    if (view === 'code') {
+      let rule = rules[currentEvent][currentRule]
+      let [when, then] = rule
+      switch(key) {
+        case 'z':
+          if (x>=0 && x<3 && y>=2 && y<5) {
+            when[y-2][x] = selectedColor<0?null:selectedColor
+          }
+          if (x>=4 && x<8 && y>=2 && y<5) {
+            then[y-2][x-5] = selectedColor<0?null:selectedColor
+          }
+          break;
+        case 'x':
+          if (x>=0 && x<3 && y>=2 && y<5) {
+            when[y-2][x] = null
+          }
+          if (x>=4 && x<8 && y>=2 && y<5) {
+            then[y-2][x-5] = null
+          }
+          break
+      }
     }
   }
 }
