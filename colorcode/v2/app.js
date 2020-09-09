@@ -278,9 +278,10 @@ function handleEventCode(state, key) {
       if (y == 0) state = selectEvent(state, x)
       else if (y > 0 && y < 3) state = selectRule(state, x + (y-1)*columns)
       else if (y === 3) state = selectColor(state, x)
+      else if (y > 4) state = setRuleColor(state, x, y)
       break;
     case 'x':
-      // state = eraseTileMapColor(state)
+      if (y > 3) state = eraseRuleColor(state, x, y)
       break;
     case 'c':
       state = togglePlayView(state)
@@ -292,9 +293,54 @@ function handleEventCode(state, key) {
 }
 
 function applyRules(state, eventName) {
+  let { tileMap, rules, rows, columns } = state
   let index = eventNames.indexOf(eventName)
-  console.log(eventName)
+  let eventRules = rules[index]
+  let stepTiles = copyArray(tileMap)
+  for (let y = 1; y < rows-1; y++) {
+    for (let x = 1; x < columns-1; x++) {
+      // For each cell, check neighborhood
+      let cell = tileMap[y][x]
+      for (let i = 0; i < eventRules.length; i++) {
+        let rule = eventRules[i]
+        let [when, then] = rule
+        // Check if the center of 'when' matches current cell
+        if (when[1][1] === cell) {
+          let startX = x-1
+          let endX = x+1
+          let aroundCell = [
+            tileMap[               max(y-1, 0)].slice(startX, endX),
+            tileMap[                        y ].slice(startX, endX),
+            tileMap[min(y+1, tileMap.length-1)].slice(startX, endX)
+          ]
+          let matched = matchRule(aroundCell, when)
+          if (matched) {
+            for (let ly = 0; ly < then.length; ly++) {
+              for (let lx = 0; lx < then[ly].length; lx++) {
+                if (then[ly][lx] !== null) {
+                  stepTiles[y-1+ly][x-1+lx] = then[ly][lx]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  state.tileMap = stepTiles
   return Object.assign({}, state)
+}
+
+function matchRule(around, when) {
+  let matched = true
+  for (let y = 0; y < when.length; y++) {
+    for (let x = 0; x < when[y].length; x++) {
+      if (when[y][x] !== null && when[y][x] !== around[y][x]) {
+        matched = false
+      }
+    }
+  }
+  return matched
 }
 
 function moveCursor(state, eventName) {
@@ -362,4 +408,43 @@ function selectRule(state, i) {
 function selectColor(state, i) {
   state.selectedColor = i
   return Object.assign({}, state)
+}
+
+function setRule(state, x, y, value) {
+  let { rules, selectedEvent, selectedRule } = state
+  let rule = rules[selectedEvent][selectedRule]
+  let [ when, then ] = rule
+  // WHEN
+  let _y = y-5
+  if (x < 3) {
+    when[_y][x] = value
+  }
+  // THEN
+  if (x > 4) {
+    let _x = x-5
+    then[_y][_x] = value
+  }
+  return Object.assign({}, state)
+}
+
+function setRuleColor(state, x, y) {
+  let { selectedColor } = state
+  state = setRule(state, x, y, selectedColor)
+  return Object.assign({}, state)
+}
+
+function eraseRuleColor(state, x, y) {
+  state = setRule(state, x, y, null)
+  return Object.assign({}, state)
+}
+
+function copyArray(arr) {
+  let n = []
+  for(let y = 0; y < arr.length; y++) {
+    n[y] = []
+    for(let x = 0; x < arr[y].length; x++) {
+      n[y][x] = arr[y][x]
+    }
+  }
+  return n
 }
