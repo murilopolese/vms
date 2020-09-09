@@ -179,7 +179,7 @@ function drawCursor(state) {
 }
 
 function update(state) {
-  if (state.view === 'play') state = applyRules(state, 'tick')
+  if (state.view === 'play' && frameCount % 10 == 0) state = applyRules(state, 'tick')
   return Object.assign({}, state)
 }
 
@@ -307,11 +307,11 @@ function applyRules(state, eventName) {
         // Check if the center of 'when' matches current cell
         if (when[1][1] === cell) {
           let startX = x-1
-          let endX = x+1
+          let endX = x+2
           let aroundCell = [
             tileMap[               max(y-1, 0)].slice(startX, endX),
             tileMap[                        y ].slice(startX, endX),
-            tileMap[min(y+1, tileMap.length-1)].slice(startX, endX)
+            tileMap[min(y+1, tileMap.length)].slice(startX, endX)
           ]
           let matched = matchRule(aroundCell, when)
           if (matched) {
