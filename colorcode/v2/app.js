@@ -1,24 +1,21 @@
-const sys_color = [10, 30]
+let elements = {}
+const sys_color = [10, 30, '#123', '#234']
 const colors = [
-  '#000',
-  '#f00',
-  '#ff0',
-  '#0f0',
-  '#0ff',
-  '#00f',
-  '#f0f',
-  '#fff',
+  '#000000', '#2b335f', '#7e2072', '#19959c',
+  '#8b4852', '#395c98', '#a9c1ff', '#eeeeee',
+  '#d4186c', '#d38441', '#e9c35b', '#70c6a9',
+  '#7696de', '#a3a3a3', '#ff9798', '#edc7b0',
 ]
 let eventNames = ['tick', 'up', 'right', 'down', 'left', 'a', 'b', 'hack']
 
 let state = {
   tileMap: [],
   rules: [],
-  cursor: [3, 4],
-  selectedColor: 1,
+  cursor: [3, 5],
+  selectedColor: 2,
   selectedRule: 0,
   selectedEvent: 0,
-  view: 'code',
+  view: 'edit',
   columns: 8,
   rows: 8,
   res: 1
@@ -57,10 +54,30 @@ for (let events = 0; events < eventNames.length; events++) {
 }
 
 function setup() {
-  createCanvas(windowHeight*0.5, windowHeight*0.5)
+  elements.screen = document.querySelector('#screen')
+  elements.controls = document.querySelector('#controls')
+  elements.buttonUp = document.querySelector('#button-up')
+  elements.buttonRight = document.querySelector('#button-right')
+  elements.buttonDown = document.querySelector('#button-down')
+  elements.buttonLeft = document.querySelector('#button-left')
+  elements.buttonA = document.querySelector('#button-a')
+  elements.buttonB = document.querySelector('#button-b')
+  elements.buttonC = document.querySelector('#button-c')
+
+  elements.buttonUp.addEventListener('click', () => keyPressed('ArrowUp'))
+  elements.buttonRight.addEventListener('click', () => keyPressed('ArrowRight'))
+  elements.buttonDown.addEventListener('click', () => keyPressed('ArrowDown'))
+  elements.buttonLeft.addEventListener('click', () => keyPressed('ArrowLeft'))
+  elements.buttonA.addEventListener('click', () => keyPressed('z'))
+  elements.buttonB.addEventListener('click', () => keyPressed('x'))
+  elements.buttonC.addEventListener('click', () => keyPressed('c'))
+
+  let canvas = createCanvas(windowWidth*0.2, windowWidth*0.2)
+  canvas.parent(elements.screen)
+  angleMode(DEGREES)
   state.res = width/state.columns
   background(colors[0])
-  noStroke()
+
 }
 
 function draw() {
@@ -95,6 +112,7 @@ function renderPlay(state) {
         color = colors[value]
       }
       fill(color)
+      stroke(color)
       square(x*res, y*res, res)
     }
   }
@@ -116,8 +134,10 @@ function renderCode(state) {
   for (let x = 0; x < columns; x++) {
     if (selectedEvent === x) {
       fill(colors[3])
+      stroke(colors[3])
     } else {
       fill(colors[4])
+      stroke(colors[4])
     }
     square(x*res, 0, res)
   }
@@ -125,21 +145,25 @@ function renderCode(state) {
   for (let x = 0; x < columns*2; x++) {
     if (selectedRule === x) {
       fill(colors[5])
+      stroke(colors[5])
     } else {
       fill(colors[6])
+      stroke(colors[6])
     }
     square((x%columns)*res, (1+parseInt(x/columns))*res, res)
   }
   // the next line is for the available colors
-  for (let x = 0; x < columns; x++) {
-    fill(colors[x])
-    square(x*res, 3*res, res)
+  for (let y = 0; y < 2; y++) {
+    for (let x = 0; x < columns; x++) {
+      let i = columns*y + x
+      fill(colors[i])
+      stroke(colors[i])
+      square(x*res, (3+y)*res, res)
+    }
   }
   // breathe line
   fill(sys_color[1])
-  for (let x = 0; x < columns; x++) {
-    square(x*res, 4*res, res)
-  }
+  stroke(sys_color[1])
   for (let y = 5; y < rows; y++) {
     square(3*res, y*res, res)
     square(4*res, y*res, res)
@@ -150,8 +174,10 @@ function renderCode(state) {
       let value = when[y][x]
       if (value === null || value === '') {
         fill(sys_color[0])
+        stroke(sys_color[0])
       } else {
         fill(colors[parseInt(value)])
+        stroke(colors[parseInt(value)])
       }
       square(x*res, (5+y)*res, res)
     }
@@ -162,8 +188,10 @@ function renderCode(state) {
       let value = then[y][x]
       if (value === null || value === '') {
         fill(sys_color[0])
+        stroke(sys_color[0])
       } else {
         fill(colors[parseInt(value)])
+        stroke(colors[parseInt(value)])
       }
       square((5+x)*res, (5+y)*res, res)
     }
@@ -174,18 +202,33 @@ function renderCode(state) {
 function drawCursor(state) {
   let { cursor, res, selectedColor } = state
   let [ x, y ] = cursor
-  fill(colors[selectedColor])
+  let c = color(colors[selectedColor])
+  c.setAlpha(map(sin(frameCount*5), -1, 1, 175, 255))
+  if (selectedColor === 0) {
+    fill(100)
+    stroke(100)
+  } else {
+    fill(sys_color[0])
+    stroke(sys_color[0])
+  }
+  square(x*res, y*res, res)
+  fill(c)
+  stroke(c)
   square(x*res, y*res, res)
 }
 
 function update(state) {
   if (state.view === 'play' && frameCount % 10 == 0) state = applyRules(state, 'tick')
-  return Object.assign({}, state)
+  return state
 }
 
 // EVENT HANDLERS
 
-function keyPressed() {
+function keyPressed(e) {
+  if (typeof e === 'string') {
+    key = e
+  }
+  highlightControls(key)
   switch (state.view) {
     case 'play':
       state = handleEventPlay(state, key)
@@ -197,6 +240,47 @@ function keyPressed() {
       state = handleEventCode(state, key)
       break;
     default:
+  }
+}
+
+function keyReleased() {
+  elements.buttonUp.style.background = sys_color[2]
+  elements.buttonRight.style.background = sys_color[2]
+  elements.buttonDown.style.background = sys_color[2]
+  elements.buttonLeft.style.background = sys_color[2]
+  elements.buttonA.style.background = sys_color[2]
+  elements.buttonB.style.background = sys_color[2]
+  elements.buttonC.style.background = sys_color[2]
+}
+
+function highlightControls(key) {
+  switch (key) {
+    case 'ArrowUp':
+      elements.buttonUp.style.background = sys_color[3]
+      break;
+    case 'ArrowRight':
+      elements.buttonRight.style.background = sys_color[3]
+      break;
+    case 'ArrowDown':
+      elements.buttonDown.style.background = sys_color[3]
+      break;
+    case 'ArrowLeft':
+      elements.buttonLeft.style.background = sys_color[3]
+      break;
+    case 'ArrowLeft':
+      elements.buttonLeft.style.background = sys_color[3]
+      break;
+    case 'z':
+      elements.buttonA.style.background = sys_color[3]
+      break;
+    case 'x':
+      elements.buttonB.style.background = sys_color[3]
+      break;
+    case 'c':
+      elements.buttonC.style.background = sys_color[3]
+      break;
+    default:
+
   }
 }
 
@@ -226,7 +310,7 @@ function handleEventPlay(state, key) {
     default:
 
   }
-  return Object.assign({}, state)
+  return state
 }
 
 function handleEventEdit(state, key) {
@@ -255,7 +339,7 @@ function handleEventEdit(state, key) {
     default:
 
   }
-  return Object.assign({}, state)
+  return state
 }
 
 function handleEventCode(state, key) {
@@ -277,7 +361,7 @@ function handleEventCode(state, key) {
     case 'z':
       if (y == 0) state = selectEvent(state, x)
       else if (y > 0 && y < 3) state = selectRule(state, x + (y-1)*columns)
-      else if (y === 3) state = selectColor(state, x)
+      else if (y >= 3 && y <= 4) state = selectColor(state, x+((y-3)*columns))
       else if (y > 4) state = setRuleColor(state, x, y)
       break;
     case 'x':
@@ -289,7 +373,7 @@ function handleEventCode(state, key) {
     default:
 
   }
-  return Object.assign({}, state)
+  return state
 }
 
 function applyRules(state, eventName) {
@@ -328,7 +412,7 @@ function applyRules(state, eventName) {
     }
   }
   state.tileMap = stepTiles
-  return Object.assign({}, state)
+  return state
 }
 
 function matchRule(around, when) {
@@ -365,49 +449,49 @@ function moveCursor(state, eventName) {
     default:
 
   }
-  return Object.assign({}, state)
+  return state
 }
 
 function setTileMapColor(state) {
   let { selectedColor, cursor } = state
   let [ x, y ] = cursor
   state.tileMap[y][x] = selectedColor
-  return Object.assign({}, state)
+  return state
 }
 
 function eraseTileMapColor(state) {
   let { cursor } = state
   let [ x, y ] = cursor
   state.tileMap[y][x] = 0
-  return Object.assign({}, state)
+  return state
 }
 
 function togglePlayView(state) {
   if (state.view === 'play') state.view = 'edit'
   else if (state.view === 'edit') state.view = 'play'
   else if (state.view === 'code') state.view = 'play'
-  return Object.assign({}, state)
+  return state
 }
 
 function toggleEditView(state) {
   if (state.view === 'edit') state.view = 'code'
   else if (state.view === 'code') state.view = 'edit'
-  return Object.assign({}, state)
+  return state
 }
 
 function selectEvent(state, i) {
   state.selectedEvent = i
-  return Object.assign({}, state)
+  return state
 }
 
 function selectRule(state, i) {
   state.selectedRule = i
-  return Object.assign({}, state)
+  return state
 }
 
 function selectColor(state, i) {
   state.selectedColor = i
-  return Object.assign({}, state)
+  return state
 }
 
 function setRule(state, x, y, value) {
@@ -424,18 +508,18 @@ function setRule(state, x, y, value) {
     let _x = x-5
     then[_y][_x] = value
   }
-  return Object.assign({}, state)
+  return state
 }
 
 function setRuleColor(state, x, y) {
   let { selectedColor } = state
   state = setRule(state, x, y, selectedColor)
-  return Object.assign({}, state)
+  return state
 }
 
 function eraseRuleColor(state, x, y) {
   state = setRule(state, x, y, null)
-  return Object.assign({}, state)
+  return state
 }
 
 function copyArray(arr) {

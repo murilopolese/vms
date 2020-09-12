@@ -1,14 +1,88 @@
-body {
+* {
+  box-sizing: border-box;
   margin: 0;
-  background: #202;
+  padding: 0;
+  display: block;
+  position: relative;
 }
 
-main {
+:root {
+  --width: 20vw;
+  --res: calc(var(--width) / 10);
+}
+
+html {
   width: 100vw;
   height: 100vh;
   display: flex;
 }
 
+body {
+  margin: auto;
+  background: #202;
+}
+
+#player {
+  width: var(--width);
+  height: calc(var(--width) * 1.4);
+  display: flex;
+  flex-direction: column;
+  background: grey;
+  padding: var(--res);
+}
+
+button {
+  display: block;
+  width: var(--res);
+  height: var(--res);
+  margin: 0;
+  border: none;
+  background: #123;
+  padding: 0;
+  margin: 0;
+}
+
+#button-a,
+#button-b,
+#button-c,
+#button-up,
+#button-right,
+#button-down,
+#button-left {
+  position: absolute;
+}
+
+#button-up {
+  top: var(--res);
+  left: var(--res);
+}
+#button-right {
+  top: calc(var(--res) * 2);
+  left: calc(var(--res) * 2);
+}
+#button-down {
+  top: calc(var(--res) * 3);
+  left: calc(var(--res));
+}
+#button-left {
+  top: calc(var(--res) * 2);
+  left: 0;
+}
+#button-a {
+  top: calc(var(--res) * 3);
+  right: calc(var(--res) * 2);
+}
+#button-b {
+  top: calc(var(--res) * 2);
+  right: calc(var(--res));
+}
+#button-c {
+  top: calc(var(--res));
+  right: 0;
+}
+
 canvas {
   margin: auto;
+  width: 100% !important;
+  height: auto !important;
 }
