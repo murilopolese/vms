@@ -1,5 +1,5 @@
 let elements = {}
-const sys_color = [10, 30, '#123', '#234']
+const sys_color = [10, 30, '#123', '#aaa']
 const colors = [
   '#000000', '#2b335f', '#7e2072', '#19959c',
   '#8b4852', '#395c98', '#a9c1ff', '#eeeeee',
@@ -19,6 +19,10 @@ let state = {
   columns: 8,
   rows: 8,
   res: 1
+}
+let pilot = {
+  step: 0,
+  steps: JSON.parse("[\"z\",\"ArrowRight\",\"z\",\"ArrowUp\",\"z\",\"ArrowRight\",\"ArrowUp\",\"z\",\"ArrowLeft\",\"ArrowUp\",\"z\",\"ArrowLeft\",\"z\",\"ArrowLeft\",\"z\",\"ArrowDown\",\"ArrowDown\",\"ArrowRight\",\"ArrowRight\",\"ArrowDown\",\"ArrowRight\",\"ArrowDown\",\"z\",\"ArrowRight\",\"ArrowRight\",\"ArrowRight\",\"ArrowRight\",\"z\",\"ArrowUp\",\"ArrowUp\",\"ArrowLeft\",\"z\",\"ArrowRight\",\"ArrowRight\",\"ArrowRight\",\"ArrowRight\",\"ArrowRight\",\"ArrowRight\",\"ArrowDown\",\"ArrowDown\",\"z\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"c\",\"Escape\",\"Escape\",\"Escape\",\"Escape\",\"Escape\",\"Escape\",\"Escape\",\"Escape\",\"Escape\",\"Escape\",\"c\",\"ArrowRight\",\"ArrowRight\",\"ArrowRight\",\"ArrowRight\",\"ArrowRight\",\"ArrowRight\",\"ArrowRight\",\"ArrowRight\",\"ArrowUp\",\"ArrowUp\",\"ArrowUp\",\"ArrowUp\",\"ArrowUp\",\"z\",\"ArrowDown\",\"ArrowDown\",\"ArrowDown\",\"ArrowDown\",\"ArrowDown\",\"z\",\"ArrowUp\",\"ArrowUp\",\"ArrowUp\",\"ArrowRight\",\"z\",\"ArrowDown\",\"ArrowDown\",\"ArrowDown\",\"ArrowRight\",\"ArrowRight\",\"ArrowRight\",\"ArrowRight\",\"z\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"ArrowLeft\",\"c\"]")
 }
 
 for (let y = 0; y < 8; y++) {
@@ -64,13 +68,34 @@ function setup() {
   elements.buttonB = document.querySelector('#button-b')
   elements.buttonC = document.querySelector('#button-c')
 
-  elements.buttonUp.addEventListener('click', () => keyPressed('ArrowUp'))
-  elements.buttonRight.addEventListener('click', () => keyPressed('ArrowRight'))
-  elements.buttonDown.addEventListener('click', () => keyPressed('ArrowDown'))
-  elements.buttonLeft.addEventListener('click', () => keyPressed('ArrowLeft'))
-  elements.buttonA.addEventListener('click', () => keyPressed('z'))
-  elements.buttonB.addEventListener('click', () => keyPressed('x'))
-  elements.buttonC.addEventListener('click', () => keyPressed('c'))
+  elements.buttonUp.addEventListener('click', () => {
+    keyPressed('ArrowUp')
+    setTimeout(() => keyReleased())
+  })
+  elements.buttonRight.addEventListener('click', () => {
+    keyPressed('ArrowRight')
+    setTimeout(() => keyReleased())
+  })
+  elements.buttonDown.addEventListener('click', () => {
+    keyPressed('ArrowDown')
+    setTimeout(() => keyReleased())
+  })
+  elements.buttonLeft.addEventListener('click', () => {
+    keyPressed('ArrowLeft')
+    setTimeout(() => keyReleased())
+  })
+  elements.buttonA.addEventListener('click', () => {
+    keyPressed('z')
+    setTimeout(() => keyReleased())
+  })
+  elements.buttonB.addEventListener('click', () => {
+    keyPressed('x')
+    setTimeout(() => keyReleased())
+  })
+  elements.buttonC.addEventListener('click', () => {
+    keyPressed('c')
+    setTimeout(() => keyReleased())
+  })
 
   let canvas = createCanvas(windowWidth*0.2, windowWidth*0.2)
   canvas.parent(elements.screen)
@@ -82,6 +107,9 @@ function setup() {
 
 function draw() {
   background(colors[0])
+  if (window.location.hash === '#autopilot') {
+    [state, pilot] = autopilot(state, pilot)
+  }
   state = update(state)
   render(state)
 }
@@ -222,11 +250,28 @@ function update(state) {
   return state
 }
 
+function autopilot(state, pilot) {
+  let speed = 15
+  if (pilot.step < pilot.steps.length) {
+    if ((frameCount % speed) === 0) {
+      let e = pilot.steps[pilot.step]
+      keyPressed(e)
+      pilot.step += 1
+    }
+    if ((frameCount % speed) === speed-1) {
+      keyReleased()
+    }
+  }
+  return [state, pilot]
+}
+
 // EVENT HANDLERS
 
 function keyPressed(e) {
   if (typeof e === 'string') {
     key = e
+  } else {
+    e.preventDefault()
   }
   highlightControls(key)
   switch (state.view) {
@@ -243,7 +288,7 @@ function keyPressed(e) {
   }
 }
 
-function keyReleased() {
+function keyReleased(e) {
   elements.buttonUp.style.background = sys_color[2]
   elements.buttonRight.style.background = sys_color[2]
   elements.buttonDown.style.background = sys_color[2]
@@ -251,6 +296,10 @@ function keyReleased() {
   elements.buttonA.style.background = sys_color[2]
   elements.buttonB.style.background = sys_color[2]
   elements.buttonC.style.background = sys_color[2]
+
+  if (window.location.hash === '#record') {
+    pilot.steps.push(key)
+  }
 }
 
 function highlightControls(key) {
