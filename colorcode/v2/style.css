@@ -4,25 +4,34 @@
   padding: 0;
   display: block;
   position: relative;
+  transition: all 0.2s;
 }
 
 :root {
-  --width: 20vw;
+  --width: 50vh;
   --res: calc(var(--width) / 10);
 }
 
+@media (max-width: 480px) {
+  :root {
+    --width: 80vw;
+    --res: calc(var(--width) / 10);
+  }
+}
+
 html {
+
+}
+
+body {
+  background: #202;
   width: 100vw;
   height: 100vh;
   display: flex;
 }
 
-body {
-  margin: auto;
-  background: #202;
-}
-
 #player {
+  margin: auto;
   width: var(--width);
   height: calc(var(--width) * 1.4);
   display: flex;
