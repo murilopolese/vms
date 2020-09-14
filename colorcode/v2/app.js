@@ -103,8 +103,8 @@ function setup() {
   for (let i = 0; i < demos.length; i++) {
     let demo = demos[i]
     demo.addEventListener('click', () => {
-      window.location = `/#demo-${i}`
-      window.location.reload()
+      window.location = `#demo-${i}`
+      setTimeout(window.location.reload(), 10)
     })
   }
 
