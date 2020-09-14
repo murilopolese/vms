@@ -1,4 +1,4 @@
-let elements = {}
+const elements = {}
 const sys_color = [10, 30, '#123', '#aaa']
 const colors = [
   '#000000', '#2b335f', '#7e2072', '#19959c',
@@ -6,7 +6,9 @@ const colors = [
   '#d4186c', '#d38441', '#e9c35b', '#70c6a9',
   '#7696de', '#a3a3a3', '#ff9798', '#edc7b0',
 ]
-let eventNames = ['tick', 'up', 'right', 'down', 'left', 'a', 'b', 'hack']
+const eventNames = ['tick', 'up', 'right', 'down', 'left', 'a', 'b', 'hack']
+let speed = 10
+let monoSynth
 
 let state = {
   tileMap: [],
@@ -22,7 +24,7 @@ let state = {
 }
 let pilot = {
   step: 0,
-  steps: []
+  steps: null
 }
 
 for (let y = 0; y < 8; y++) {
@@ -97,17 +99,31 @@ function setup() {
     setTimeout(() => keyReleased())
   })
 
+  let demos = document.querySelectorAll('.demo')
+  for (let i = 0; i < demos.length; i++) {
+    let demo = demos[i]
+    demo.addEventListener('click', () => {
+      window.location = `/#demo-${i}`
+      window.location.reload()
+    })
+  }
+
   let canvas = createCanvas(windowWidth*0.5, windowWidth*0.5)
   canvas.parent(elements.screen)
   angleMode(DEGREES)
   state.res = width/state.columns
   background(colors[0])
 
+  monoSynth = new p5.MonoSynth()
 }
 
 function draw() {
   background(colors[0])
-  if (window.location.hash === '#autopilot') {
+  if (window.location.hash.indexOf('#demo-') === 0) {
+    if (!pilot.steps) {
+      let i = parseInt(window.location.hash.split('-')[1])
+      pilot.steps = stories[i]
+    }
     [state, pilot] = autopilot(state, pilot)
   }
   state = update(state)
@@ -200,13 +216,18 @@ function renderCode(state) {
   for (let x = 0; x < 3; x++) {
     for (let y = 0; y < 3; y++) {
       let value = when[y][x]
+      let color = parseInt(when[y][x])
       if (value === null || value === '') {
         fill(sys_color[0])
         stroke(sys_color[0])
+      } else if (color == 0) {
+        fill(colors[color])
+        stroke(sys_color[3])
       } else {
-        fill(colors[parseInt(value)])
-        stroke(colors[parseInt(value)])
+        fill(colors[color])
+        stroke(colors[color])
       }
+
       square(x*res, (5+y)*res, res)
     }
   }
@@ -214,12 +235,16 @@ function renderCode(state) {
   for (let x = 0; x < 3; x++) {
     for (let y = 0; y < 3; y++) {
       let value = then[y][x]
+      let color = parseInt(then[y][x])
       if (value === null || value === '') {
         fill(sys_color[0])
         stroke(sys_color[0])
+      } else if (color == 0) {
+        fill(colors[color])
+        stroke(sys_color[3])
       } else {
-        fill(colors[parseInt(value)])
-        stroke(colors[parseInt(value)])
+        fill(colors[color])
+        stroke(colors[color])
       }
       square((5+x)*res, (5+y)*res, res)
     }
@@ -251,7 +276,6 @@ function update(state) {
 }
 
 function autopilot(state, pilot) {
-  let speed = 5
   if (pilot.step < pilot.steps.length) {
     if ((frameCount % speed) === 0) {
       let e = pilot.steps[pilot.step]
@@ -273,6 +297,7 @@ function keyPressed(e) {
   } else {
     e.preventDefault()
   }
+  playSynth(key)
   highlightControls(key)
   switch (state.view) {
     case 'play':
@@ -298,6 +323,7 @@ function keyReleased(e) {
   elements.buttonC.style.background = sys_color[2]
 
   if (window.location.hash === '#record') {
+    if (pilot.steps === null) pilot.steps = []
     pilot.steps.push(key)
   }
 }
@@ -589,8 +615,27 @@ let stories = [
   ["z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowUp","z","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowDown","ArrowLeft","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","c","ArrowUp","ArrowUp","ArrowRight","ArrowLeft","ArrowUp","ArrowRight","ArrowUp","ArrowRight","ArrowLeft","ArrowDown","c"],
   // Moving on the screen
   ["z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowDown","ArrowDown","ArrowRight","z","ArrowUp","ArrowUp","ArrowRight","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","ArrowUp","z","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","z","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","z","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","ArrowRight","ArrowRight","z","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","z","ArrowUp","ArrowUp","ArrowUp","ArrowRight","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowDown","ArrowDown","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowRight","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowRight","ArrowUp","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowUp","ArrowUp","ArrowUp","ArrowRight","ArrowRight","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowRight","ArrowRight","z","ArrowDown","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowDown","ArrowDown","c","ArrowUp","ArrowLeft","ArrowUp","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowRight","ArrowUp","ArrowRight","ArrowRight","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowDown","ArrowDown","ArrowRight","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowUp","ArrowUp","ArrowUp","ArrowRight","ArrowLeft","ArrowLeft","ArrowLeft","ArrowDown","ArrowRight","c","ArrowLeft","ArrowUp","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowRight","ArrowDown","ArrowRight","z","ArrowRight","ArrowRight","ArrowUp","z","ArrowRight","ArrowRight","ArrowDown","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","z","c","ArrowUp","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowLeft","ArrowUp","ArrowLeft","ArrowRight","ArrowDown","ArrowRight","ArrowDown","ArrowRight","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowRight","ArrowRight","ArrowRight","x","ArrowUp","c","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowDown","ArrowLeft","z","ArrowUp","ArrowRight","z","ArrowLeft","z","ArrowDown","ArrowRight","z","c","ArrowLeft","ArrowLeft","ArrowLeft","ArrowDown","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowDown","ArrowDown","ArrowRight","ArrowLeft","ArrowLeft","ArrowUp","ArrowRight","c"],
+  // Bouncing pixel
+  ["ArrowUp","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowUp","ArrowUp","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowRight","z","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowRight","z","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowUp","ArrowRight","ArrowRight","z","ArrowDown","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","c","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","c","ArrowUp","z","ArrowUp","ArrowRight","ArrowUp","ArrowRight","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","z","ArrowRight","ArrowRight","ArrowRight","ArrowUp","ArrowUp","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowLeft","ArrowUp","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","ArrowRight","ArrowRight","z","c"],
   // Wireworld
-  ["ArrowDown","ArrowDown","x","ArrowLeft","x","ArrowLeft","x","ArrowLeft","x","ArrowUp","x","ArrowUp","x","ArrowUp","x","ArrowUp","x","ArrowUp","x","ArrowUp","x","ArrowUp","x","ArrowRight","x","ArrowRight","x","ArrowRight","x","ArrowRight","x","ArrowRight","x","ArrowRight","x","ArrowRight","x","ArrowDown","x","ArrowDown","x","ArrowDown","x","ArrowDown","x","ArrowDown","x","ArrowDown","x","ArrowDown","x","ArrowLeft","x","ArrowLeft","x","ArrowLeft","x","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowUp","z","ArrowUp","z","ArrowUp","z","ArrowLeft","z","ArrowLeft","z","ArrowLeft","z","ArrowLeft","z","ArrowLeft","z","ArrowDown","z","ArrowDown","z","ArrowDown","z","ArrowDown","z","ArrowDown","z","ArrowRight","z","ArrowRight","z","ArrowRight","z","ArrowUp","z","ArrowUp","z","ArrowRight","z","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowUp","z","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","z","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowRight","z","ArrowUp","ArrowUp","ArrowRight","z","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","z","ArrowDown","ArrowDown","ArrowRight","z","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","z","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowLeft","z","ArrowDown","ArrowRight","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","z","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowRight","ArrowDown","ArrowDown","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowDown","ArrowDown","ArrowDown","z","ArrowUp","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","z","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowLeft","z","ArrowDown","ArrowDown","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","c","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","c","z","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","z","c","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","c","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowUp","z","ArrowUp","z","c"]
+  ["ArrowDown","ArrowDown","x","ArrowLeft","x","ArrowLeft","x","ArrowLeft","x","ArrowUp","x","ArrowUp","x","ArrowUp","x","ArrowUp","x","ArrowUp","x","ArrowUp","x","ArrowUp","x","ArrowRight","x","ArrowRight","x","ArrowRight","x","ArrowRight","x","ArrowRight","x","ArrowRight","x","ArrowRight","x","ArrowDown","x","ArrowDown","x","ArrowDown","x","ArrowDown","x","ArrowDown","x","ArrowDown","x","ArrowDown","x","ArrowLeft","x","ArrowLeft","x","ArrowLeft","x","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowUp","z","ArrowUp","z","ArrowUp","z","ArrowLeft","z","ArrowLeft","z","ArrowLeft","z","ArrowLeft","z","ArrowLeft","z","ArrowDown","z","ArrowDown","z","ArrowDown","z","ArrowDown","z","ArrowDown","z","ArrowRight","z","ArrowRight","z","ArrowRight","z","ArrowUp","z","ArrowUp","z","ArrowRight","z","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowUp","z","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","z","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowRight","z","ArrowUp","ArrowUp","ArrowRight","z","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","z","ArrowDown","ArrowDown","ArrowRight","z","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","z","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowLeft","z","ArrowDown","ArrowRight","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","z","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowRight","ArrowDown","ArrowDown","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowDown","ArrowDown","ArrowDown","z","ArrowUp","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","z","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowLeft","z","ArrowDown","ArrowDown","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","c","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","c","z","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","z","c","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","Escape","c","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowUp","z","ArrowUp","z","c"],
+  // Shooting
+  ["ArrowDown","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowDown","ArrowDown","ArrowRight","z","ArrowUp","ArrowRight","z","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowRight","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowDown","ArrowDown","z","ArrowUp","ArrowRight","z","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowUp","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","z","c","ArrowUp","Escape","Escape","Escape","Escape","Escape","Escape","c","ArrowRight","ArrowRight","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowRight","z","ArrowDown","ArrowDown","z","ArrowDown","ArrowDown","z","ArrowRight","ArrowUp","z","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","z","c","ArrowUp","Escape","Escape","Escape","Escape","Escape","Escape","Escape","ArrowUp","Escape","Escape","Escape","Escape","Escape","Escape","c","ArrowRight","ArrowRight","ArrowRight","ArrowUp","ArrowUp","ArrowUp","ArrowRight","z","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowUp","ArrowUp","ArrowLeft","z","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowRight","ArrowRight","z","ArrowDown","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowUp","ArrowLeft","ArrowUp","ArrowLeft","ArrowUp","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","z","c","ArrowLeft","ArrowLeft","ArrowUp","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowUp","ArrowLeft","ArrowLeft","ArrowUp","ArrowLeft","ArrowLeft","ArrowUp","ArrowLeft","Escape","z","c","ArrowRight","ArrowRight","ArrowUp","ArrowUp","ArrowRight","ArrowRight","ArrowUp","z","ArrowUp","ArrowUp","ArrowUp","ArrowRight","ArrowRight","ArrowRight","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowDown","ArrowDown","z","ArrowUp","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowRight","ArrowRight","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowDown","ArrowDown","ArrowRight","z","ArrowUp","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowDown","z","ArrowUp","z","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowDown","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowUp","ArrowUp","ArrowRight","z","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","ArrowDown","z","ArrowUp","z","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowRight","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowRight","ArrowDown","z","c","z","ArrowRight","z","ArrowRight","z","ArrowRight","z","ArrowRight","z","ArrowRight","z"]
 ]
 
-pilot.steps = stories[parseInt(Math.random()*stories.length)]
+function playSynth(key) {
+  userStartAudio();
+  let notes = ['E4', 'G4', 'A4', 'C5', 'D5', 'E5', 'F4']
+  let keys = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft', 'z', 'x', 'c']
+  let i = keys.indexOf(key)
+  let note = notes[i]
+  // let note = random(['A4', 'Fb4', 'G4']);
+  // note velocity (volume, from 0 to 1)
+  let velocity = 1;
+  // time from now (in seconds)
+  let time = 0.01;
+  // note duration (in seconds)
+  let dur = 1/72;
+
+  monoSynth.play(note, velocity, time, dur);
+}
