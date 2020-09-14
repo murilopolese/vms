@@ -7,7 +7,7 @@ const colors = [
   '#7696de', '#a3a3a3', '#ff9798', '#edc7b0',
 ]
 const eventNames = ['tick', 'up', 'right', 'down', 'left', 'a', 'b', 'hack']
-let speed = 10
+let speed = 15
 let monoSynth
 
 let state = {
@@ -114,7 +114,9 @@ function setup() {
   state.res = width/state.columns
   background(colors[0])
 
-  monoSynth = new p5.MonoSynth()
+  // monoSynth = new p5.PolySynth()
+  // monoSynth = new p5.MonoSynth()
+  // monoSynth.setADSR(0.35, 0.1, 1, 0.5)
 }
 
 function draw() {
@@ -297,7 +299,7 @@ function keyPressed(e) {
   } else {
     e.preventDefault()
   }
-  playSynth(key)
+  // playSynth(key)
   highlightControls(key)
   switch (state.view) {
     case 'play':
@@ -623,19 +625,18 @@ let stories = [
   ["ArrowDown","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowDown","ArrowDown","ArrowRight","z","ArrowUp","ArrowRight","z","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowRight","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowDown","ArrowDown","z","ArrowUp","ArrowRight","z","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowUp","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","z","c","ArrowUp","Escape","Escape","Escape","Escape","Escape","Escape","c","ArrowRight","ArrowRight","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowRight","z","ArrowDown","ArrowDown","z","ArrowDown","ArrowDown","z","ArrowRight","ArrowUp","z","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","z","c","ArrowUp","Escape","Escape","Escape","Escape","Escape","Escape","Escape","ArrowUp","Escape","Escape","Escape","Escape","Escape","Escape","c","ArrowRight","ArrowRight","ArrowRight","ArrowUp","ArrowUp","ArrowUp","ArrowRight","z","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowUp","ArrowUp","ArrowLeft","z","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowRight","ArrowRight","z","ArrowDown","ArrowDown","ArrowDown","ArrowRight","ArrowRight","ArrowRight","z","ArrowLeft","ArrowLeft","ArrowUp","ArrowLeft","ArrowUp","ArrowLeft","ArrowUp","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","z","c","ArrowLeft","ArrowLeft","ArrowUp","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowUp","ArrowLeft","ArrowLeft","ArrowUp","ArrowLeft","ArrowLeft","ArrowUp","ArrowLeft","Escape","z","c","ArrowRight","ArrowRight","ArrowUp","ArrowUp","ArrowRight","ArrowRight","ArrowUp","z","ArrowUp","ArrowUp","ArrowUp","ArrowRight","ArrowRight","ArrowRight","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowDown","ArrowDown","z","ArrowUp","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowRight","ArrowRight","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowDown","ArrowDown","ArrowRight","z","ArrowUp","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","z","ArrowLeft","ArrowLeft","ArrowLeft","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","z","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","z","ArrowDown","ArrowDown","z","ArrowUp","z","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowDown","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowUp","ArrowUp","ArrowRight","z","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","ArrowDown","z","ArrowUp","z","ArrowUp","ArrowUp","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","ArrowUp","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","ArrowLeft","ArrowLeft","ArrowLeft","ArrowDown","z","ArrowUp","ArrowUp","ArrowUp","ArrowRight","z","ArrowDown","ArrowDown","ArrowDown","ArrowDown","ArrowLeft","z","ArrowUp","ArrowUp","ArrowUp","ArrowUp","ArrowLeft","z","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowRight","ArrowDown","ArrowDown","ArrowRight","ArrowDown","z","c","z","ArrowRight","z","ArrowRight","z","ArrowRight","z","ArrowRight","z","ArrowRight","z"]
 ]
 
-function playSynth(key) {
-  userStartAudio();
-  let notes = ['E4', 'G4', 'A4', 'C5', 'D5', 'E5', 'F4']
-  let keys = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft', 'z', 'x', 'c']
-  let i = keys.indexOf(key)
-  let note = notes[i]
-  // let note = random(['A4', 'Fb4', 'G4']);
-  // note velocity (volume, from 0 to 1)
-  let velocity = 1;
-  // time from now (in seconds)
-  let time = 0.01;
-  // note duration (in seconds)
-  let dur = 1/72;
-
-  monoSynth.play(note, velocity, time, dur);
-}
+// function playSynth(key) {
+//   userStartAudio();
+//   let notes = ['E4', 'G4', 'A5', 'C5', 'D5', 'E5', 'F4']
+//   let keys = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft', 'z', 'x', 'c']
+//   let i = keys.indexOf(key)
+//   let note = notes[i] || notes[0]
+//   // let note = random(['A4', 'Fb4', 'G4']);
+//   // note velocity (volume, from 0 to 1)
+//   let velocity = 0.5;
+//   // time from now (in seconds)
+//   let time = 0.1;
+//   // note duration (in seconds)
+//   let dur = 1/speed;
+//   monoSynth.play(note, velocity, time, dur);
+// }
