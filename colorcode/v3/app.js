@@ -150,6 +150,7 @@ function draw() {
     localStorage.setItem('slot5', null)
     localStorage.setItem('slot6', null)
     window.location.hash = ''
+    setTimeout(()=> window.location.reload())
   }
   state = update(state)
   render(state)
