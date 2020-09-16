@@ -124,7 +124,7 @@ function setup() {
   let canvas = createCanvas(windowWidth*0.5, windowWidth*0.5)
   canvas.parent(elements.screen)
   angleMode(DEGREES)
-  state.res = width/state.columns
+  state.res = parseInt(width/state.columns)
   background(colors[0])
 
   // monoSynth = new p5.PolySynth()
