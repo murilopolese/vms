@@ -8,8 +8,7 @@ const colors = [
 ]
 const eventNames = ['tick', 'up', 'right', 'down', 'left', 'a', 'b', 'hack']
 let speed = 15
-let res = 1
-let canvas
+let res, canvas
 // let monoSynth
 
 let state = {
@@ -280,7 +279,7 @@ function renderCode(state) {
 }
 
 function drawCursor(state) {
-  let { cursor, res, selectedColor } = state
+  let { cursor, selectedColor } = state
   let [ x, y ] = cursor
   let c = color(colors[selectedColor])
   c.setAlpha(map(sin(frameCount*5), -1, 1, 175, 255))
