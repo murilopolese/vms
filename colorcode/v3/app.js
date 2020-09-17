@@ -136,11 +136,9 @@ function draw() {
   res = parseInt(canvas.width/state.columns)
   background(colors[0])
   if (window.location.hash.indexOf('#demo-') === 0) {
-    if (!pilot.steps) {
-      let i = parseInt(window.location.hash.split('-')[1])
-      pilot.steps = stories[i]
-    }
-    [state, pilot] = autopilot(state, pilot)
+    let i = parseInt(window.location.hash.split('-')[1])
+    state = stories[i]
+    window.location.hash = ''
   }
   if (window.location.hash === '#reset') {
     localStorage.setItem('slot0', null)
