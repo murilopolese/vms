@@ -50,8 +50,34 @@
     </p>
     <iframe width="560" height="315" src="https://www.youtube.com/embed/w2ugthE9VyY?controls=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     <p>
-      I hope you have fun playing with it!!!
+      If you don't get it just by looking at it, here are some words:
     </p>
+    <ul>
+      <li>Use the arrow keys on your keyboard or click on the "dpad" to move the cursor</li>
+      <li>There are 3 action buttons and you can trigger them with "Z", "X" and "C"</li>
+      <ul>
+        <li>Z: Stamp or select</li>
+        <li>X: Erase</li>
+        <li>C: Toggle between editing and playing program</li>
+      </ul>
+      <li>If you "walk out" the screen in any direction you will switch between the stage and the editor</li>
+      <li>The first line (green and brown) of the editor are slots for <strong>events</strong></li>
+      <ul>
+        <li>First event is the "clock tick". Rules in this event will run all the time</li>
+        <li>The follow events are keyboard events in this order: up, right, down, left, Z and X</li>
+        <li>The last one does nothing (up to you hack that)</li>
+      </ul>
+      <li>The second line on the editor (blue) are 16 slots for rules</li>
+      <li>The next two lines are the color palette</li>
+      <li>
+        Down on the editor are two 3x3 matrix that work as the rule editor. The
+        left matrix is the "WHEN". Once the pattern you draw there is found on
+        the stage it will trigger the "THEN". Notice that the "black" color is
+        different than "no color". When there is no color, that pixel will be
+        ignored in the rule matching.
+      </li>
+      <li>Very important: Only rules with pixels on the center will be executed</li>
+    </ul>
     <br>
     <br>
   </body>
