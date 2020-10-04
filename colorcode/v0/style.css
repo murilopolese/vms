@@ -1,0 +1,57 @@
+body {
+  margin: 0;
+  --color0: #000000;
+  --color1: #7e2553;
+  --color2: #1d2b53;
+  --color3: #ff004d;
+  --color4: #ffa300;
+  --color5: #29adff;
+  --color6: #c2c3c7;
+  --color7: #83769c;
+}
+
+body {
+  font-size: 1.5vh;
+  min-width: 100vw;
+  min-height: 100vh;
+  max-width: 960px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: var(--color1);
+}
+#tape, #rules, #controls, .row{
+  display: flex;
+}
+
+.cell, .rule, .button {
+  width: 4em;
+  height: 4em;
+  margin: 0.1em;
+  cursor: pointer;
+}
+
+.cell[state="0"] {
+  background: var(--color2);
+}
+
+.cell[state="1"] {
+  background: var(--color3);
+}
+
+.rule[state="0"] {
+  background: var(--color4);
+}
+
+.rule[state="1"] {
+  background: var(--color5);
+}
+
+.rule[state="2"] {
+  background: var(--color6);
+}
+
+.button {
+  background: var(--color7);
+}
