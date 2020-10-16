@@ -1,10 +1,20 @@
 let state = {
   interval: null,
   operators: ['and', 'or', 'xor'],
-  rules: [2, 2, 2, 2, 2, 2, 2, 2],
-  cells: [1, 0, 0, 0, 0, 0, 0, 0],
+  rules: [],
+  cells: [],
   weave: []
 }
+
+function random(a, b) {
+  return parseInt(a + (Math.random() * (b - a)))
+}
+
+for (let i = 0; i < 16; i++) {
+  state.rules.push(random(0, 3))
+  state.cells.push(random(0, 2))
+}
+state.cells[0] = 1
 
 let operators = [
   function and(a, b) {
@@ -100,7 +110,8 @@ function renderCells(state, emit) {
 function renderControls(state, emit) {
   return h('div', { id: 'controls' },
     h('div', { class: 'button', click: () => emit('tick') }),
-    h('div', { class: 'button', click: () => emit('toggle') })
+    h('div', { class: 'button', click: () => emit('toggle') }),
+    h('div', { class: 'button', click: () => window.location.reload() })
   )
 }
 
