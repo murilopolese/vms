@@ -9,7 +9,6 @@ const colors = [
 const eventNames = ['tick', 'up', 'right', 'down', 'left', 'a', 'b', 'hack']
 let speed = 15
 let res, canvas, inputs=[], outputs=[]
-// let monoSynth
 
 let state = {
   tileMap: [],
@@ -128,25 +127,30 @@ function setup() {
   background(colors[0])
   noSmooth()
 
-  let outputs = document.querySelector('#outputs')
+  let outputsEl = document.querySelector('#outputs')
+  for (let i = 0; i < 8; i++) {
+    outputs.push(
+      createSlider(0, 15, state.tileMap[i][15])
+    )
+    outputs[i].parent(outputsEl)
+  }
+  let inputsEl = document.querySelector('#inputs')
   for (let i = 0; i < 8; i++) {
     inputs.push(
-      createSlider(state.tileMap[i][0], 16, 1)
+      createSlider(0, 15, 0)
     )
-    inputs[i].parent(outputs)
+    inputs[i].parent(inputsEl)
   }
 
-  // monoSynth = new p5.PolySynth()
-  // monoSynth = new p5.MonoSynth()
-  // monoSynth.setADSR(0.35, 0.1, 1, 0.5)
 }
 
 function draw() {
-  res = parseInt(canvas.width/state.columns)
+  res = parseInt(width/state.columns)
   state = update(state)
   render(state)
   for (let i = 0; i < 8; i++) {
-    inputs[i].value(state.tileMap[i+1][15])
+    outputs[i].value(state.tileMap[i+1][15])
+    state.tileMap[i+1][0] = inputs[i].value()
   }
 }
 

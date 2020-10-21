@@ -44,6 +44,11 @@ body {
 }
 
 #outputs {
+  width: 10vw;
+  padding: 1em;
+}
+#inputs {
+  width: 10vw;
   padding: 1em;
 }
 
