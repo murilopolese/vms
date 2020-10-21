@@ -1,14 +1,47 @@
-typedef char number;
+typedef unsigned char number;
+typedef char rule_number;
 typedef enum { EDIT, CODE, RUN } mode;
 typedef enum { FALSE, TRUE } bool;
 
 number memory[16][16];
-number rules[8][16][2][3][3];
+rule_number rules[8][16][2][3][3];
 number cursor[2];
 number selectedColor;
 number selectedEvent;
 number selectedSlot;
 mode view;
+
+number getTile(number x, number y) {
+  return memory[y][x];
+}
+
+rule_number getRule(number eventIndex, number slot, number index, number x, number y) {
+  return rules[eventIndex][slot][index][y][x];
+}
+
+number getCursorX() {
+  return cursor[0];
+}
+
+number getCursorY() {
+  return cursor[1];
+}
+
+number getSelectedColor() {
+  return selectedColor;
+}
+
+number getSelectedEvent() {
+  return selectedEvent;
+}
+
+number getSelectedSlot() {
+  return selectedSlot;
+}
+
+number getView() {
+  return view;
+}
 
 void setTile(number x, number y) {
   memory[y][x] = selectedColor;
@@ -40,6 +73,7 @@ void setCursor(number x, number y) {
 }
 void applyRules(number eventIndex) {
   number newMemory[16][16];
+
   for(int i = 0; i < 16; i++) {
     for(int j = 0; j < 16; j++) {
       newMemory[i][j] = memory[i][j];
@@ -55,8 +89,8 @@ void applyRules(number eventIndex) {
           bool matched = TRUE;
           for(int _y = 0; _y < 3; _y++) {
             for(int _x = 0; _x < 3; _x++) {
-              number _cel = rules[eventIndex][i][0][_y][_x];
-              if (_cel != -1) { // Rule is not empty
+              rule_number _cell = rules[eventIndex][i][0][_y][_x];
+              if (_cell != -1) { // Rule cell is not empty
                 if (memory[y+_y-1][x+_x-1] != rules[eventIndex][i][0][_y][_x]) {
                   // Memory does not match rule
                   matched = FALSE;
@@ -67,8 +101,8 @@ void applyRules(number eventIndex) {
           if (matched == TRUE) {
             for(int _y = 0; _y < 3; _y++) {
               for(int _x = 0; _x < 3; _x++) {
-                number _cel = rules[eventIndex][i][1][_y][_x];
-                if (_cel != -1) {
+                rule_number _cell = rules[eventIndex][i][1][_y][_x];
+                if (_cell != -1) {
                   newMemory[y+_y-1][x+_x-1] = rules[eventIndex][i][1][_y][_x];
                 }
               }

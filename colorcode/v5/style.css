@@ -1,0 +1,10 @@
+main {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+}
+canvas {
+  margin: auto;
+  width: 80vh !important;
+  height: 80vh !important;
+}
