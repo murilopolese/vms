@@ -64,7 +64,8 @@ let storiesIndex = [
   "shootkaboom",
   "wireworld",
   "fallcolors",
-  "rogue"
+  "rogue",
+  "stairs",
 ]
 
 function preload() {
