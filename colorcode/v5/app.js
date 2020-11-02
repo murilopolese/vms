@@ -6,6 +6,7 @@ let getSelectedColor = Module.cwrap('getSelectedColor', 'number', null)
 let getSelectedEvent = Module.cwrap('getSelectedEvent', 'number', null)
 let getSelectedSlot = Module.cwrap('getSelectedSlot', 'number', null)
 let getView = Module.cwrap('getView', 'number', null)
+let getRule = Module.cwrap('getRule', 'number', ['number', 'number', 'number', 'number', 'number'])
 let eraseTile = Module.cwrap('eraseTile', null, ['number', 'number'])
 let setMode = Module.cwrap('setMode', null, ['number'])
 let selectColor = Module.cwrap('selectColor', null, ['number'])
@@ -28,11 +29,23 @@ const colors = [
   '#7696de', '#a3a3a3', '#ff9798', '#edc7b0',
 ]
 
+let colorButtons = []
+
 function setup() {
   createCanvas(500, 500)
   res = width/16
   noSmooth()
   noStroke()
+
+  for (let i = 0; i < 16; i++) {
+    let button = createButton(i)
+    button.elt.classList.add('color-button')
+    button.elt.style.background = colors[i]
+    button.mousePressed(() => {
+      selectColor(i)
+    })
+    colorButtons.push(button)
+  }
 }
 
 setTimeout(() => {

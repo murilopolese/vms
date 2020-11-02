@@ -25,12 +25,17 @@ body * {
 body {
   background: #202;
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   margin: 0;
+  padding: 3em 0;
+}
+
+img, iframe {
+  max-width: 100%;
 }
 
 #player {
@@ -41,6 +46,15 @@ body {
   flex-direction: column;
   background: grey;
   padding: var(--res);
+}
+
+#screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--width) - calc(var(--res) * 2));
+  height: calc(var(--width) - calc(var(--res) * 2));
+  background: #aaa;
 }
 
 button {
@@ -100,15 +114,16 @@ canvas {
   height: auto !important;
 }
 
-.slots {
+#gallery {
   display: flex;
   flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 2rem;
-  width: var(--width);
+  flex-wrap: wrap;
+  width: calc(var(--width) + 1em);
+  margin: 2em 0;
 }
 
-.slots button {
-  margin: 0.5em;
+#gallery a {
+  display: inline-block;
+  width: 25%;
+  padding: 0.5em;
 }

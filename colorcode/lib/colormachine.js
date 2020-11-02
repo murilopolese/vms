@@ -1808,6 +1808,9 @@ var ___wasm_call_ctors = Module["___wasm_call_ctors"] = createExportWrapper("__w
 var _getTile = Module["_getTile"] = createExportWrapper("getTile");
 
 /** @type {function(...*):?} */
+var _getRule = Module["_getRule"] = createExportWrapper("getRule");
+
+/** @type {function(...*):?} */
 var _getCursorX = Module["_getCursorX"] = createExportWrapper("getCursorX");
 
 /** @type {function(...*):?} */

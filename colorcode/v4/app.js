@@ -10,6 +10,9 @@ const eventNames = ['tick', 'up', 'right', 'down', 'left', 'a', 'b', 'hack']
 let speed = 15
 let res, canvas, inputs=[], outputs=[]
 
+const NUMBER_OF_INPUTS = 1
+const NUMBER_OF_OUTPUTS = 1
+
 let state = {
   tileMap: [],
   rules: [],
@@ -56,6 +59,19 @@ for (let events = 0; events < eventNames.length; events++) {
     }
     state.rules[events][rules] = [when, then]
   }
+}
+
+function drippingSync() {
+  setTimeout(function() {
+    console.log('ping')
+    if (inputs[0]) {
+      inputs[0].value(15)
+      setTimeout(function() {
+        inputs[0].value(0)
+      }, random(100, 190))
+    }
+    drippingSync()
+  }, random(200, 1500))
 }
 
 function setup() {
@@ -128,29 +144,33 @@ function setup() {
   noSmooth()
 
   let outputsEl = document.querySelector('#outputs')
-  for (let i = 0; i < 8; i++) {
+  state.tileMap[2][15] = 0
+  for (let i = 0; i < NUMBER_OF_OUTPUTS; i++) {
     outputs.push(
       createSlider(0, 15, state.tileMap[i][15])
     )
     outputs[i].parent(outputsEl)
   }
   let inputsEl = document.querySelector('#inputs')
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < NUMBER_OF_INPUTS; i++) {
     inputs.push(
       createSlider(0, 15, 0)
     )
     inputs[i].parent(inputsEl)
   }
 
+  drippingSync()
 }
 
 function draw() {
   res = parseInt(width/state.columns)
   state = update(state)
   render(state)
-  for (let i = 0; i < 8; i++) {
-    outputs[i].value(state.tileMap[i+1][15])
-    state.tileMap[i+1][0] = inputs[i].value()
+  for (let i = 0; i < NUMBER_OF_OUTPUTS; i++) {
+    outputs[i].value(state.tileMap[i+2][15])
+  }
+  for (let i = 0; i < NUMBER_OF_INPUTS; i++) {
+    state.tileMap[i+2][0] = inputs[i].value()
   }
 }
 
@@ -294,7 +314,8 @@ function drawCursor(state) {
 }
 
 function update(state) {
-  if (state.view === 'play' && frameCount % 10 == 0) state = applyRules(state, 'tick')
+  // if (state.view === 'play' && frameCount % 10 == 0) state = applyRules(state, 'tick')
+  if (state.view === 'play' && frameCount % 5 == 0) state = applyRules(state, 'tick')
   return state
 }
 

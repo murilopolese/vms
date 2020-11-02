@@ -1,10 +1,19 @@
-main {
+/* main {
   width: 100vw;
   height: 100vh;
   display: flex;
+} */
+:root {
+  --width: 80vw;
 }
 canvas {
   margin: auto;
-  width: 80vh !important;
-  height: 80vh !important;
+  width: var(--width) !important;
+  height: var(--width) !important;
+}
+.color-button {
+  width: calc(var(--width) / 16);
+  height: calc(var(--width) / 16);
+  background: none;
+  border: none;
 }

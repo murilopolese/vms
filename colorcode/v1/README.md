@@ -1,5 +1,7 @@
 # Coding with color
 
+**First attempt: HTML UI**
+
 After reading [this tweet](https://twitter.com/PlusPlusInt/status/1299221041378734080) I ended up reading [this really cool article](https://www.microsoft.com/en-us/research/publication/tilecode-creation-of-video-games-on-gaming-handhelds/) and got inspired to do something that could be translated initially not for a sprite situation but for a LED matrix situation.
 
 The idea is simple: A configurable cellular automata engine. A finite state machine programmed by describing a situation and an action to be taken when the situation happen.
