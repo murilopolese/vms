@@ -66,6 +66,7 @@ let storiesIndex = [
   "fallcolors",
   "rogue",
   "stairs",
+  "pixelinvader",
 ]
 
 function preload() {
