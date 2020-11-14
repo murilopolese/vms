@@ -74,6 +74,7 @@ let storiesIndex = [
   "rainbow",
   "pong2",
   "duel",
+  "burningfractal",
 ]
 
 function preload() {
