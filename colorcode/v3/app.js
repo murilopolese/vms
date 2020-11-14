@@ -72,6 +72,7 @@ let storiesIndex = [
   "trampoline",
   "fireinthesky",
   "rainbow",
+  "pong2",
 ]
 
 function preload() {
