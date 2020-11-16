@@ -75,6 +75,7 @@ let storiesIndex = [
   "pong2",
   "duel",
   "burningfractal",
+  "tangledforest",
 ]
 
 function preload() {
