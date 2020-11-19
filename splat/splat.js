@@ -97,7 +97,7 @@ function Rule({ when, then }) {
 
 function Element({ name = 'empty', rules = [], color = 'white' }) {
   this.name = name
-  this.rules = rules,
+  this.rules = rules
   this.color = color
 }
 
@@ -109,7 +109,7 @@ function clearGrid(grid) {
       grid[y].push(new Element({}))
     }
   }
-  return grid;
+  return grid
 }
 
 let empty = new Element({
@@ -267,18 +267,6 @@ let swapline = new Element({
   name: 'swapline',
   color: 'cyan',
   rules: [
-    new Rule({ // catch up
-      when: [
-        ['s', null, null],
-        [null, '@', null],
-        ['s', null, null]
-      ],
-      then: [
-        ['.', null, null],
-        [null, '.', null],
-        ['.', null, null]
-      ],
-    }),
     new Rule({ // catch up
       when: [
         ['s', null, null],
