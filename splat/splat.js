@@ -101,10 +101,6 @@ function Element({ name = 'empty', rules = [], color = 'white' }) {
   this.color = color
 }
 
-
-const GRID_SIZE = 16
-let grid = clearGrid()
-
 function clearGrid(grid) {
   if (!grid) grid = []
   for (let y = 0; y < GRID_SIZE; y++) {
@@ -343,3 +339,6 @@ let elements = {
   'r': resource,
   's': swapline,
 }
+
+const GRID_SIZE = 16
+let grid = clearGrid()

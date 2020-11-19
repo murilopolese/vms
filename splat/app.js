@@ -52,7 +52,7 @@ on(emitter, 'play', () => {
         1 + parseInt(Math.random()*(GRID_SIZE-2))
       ]
     )
-  }, 100)
+  }, 10)
   emit(emitter, 'render')
 })
 on(emitter, 'stop', () => {
@@ -165,6 +165,4 @@ function setYolo(grid) {
 
 window.onload = function() {
   emit(emitter, 'render')
-
-
 }
