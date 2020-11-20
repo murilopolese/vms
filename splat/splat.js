@@ -22,12 +22,13 @@ function format_matrix(ruleArray) {
   return formatted
 }
 
-function Rule({ when, then }) {
+function Rule({ when = [[]], then = [[]] }) {
   this.when = format_matrix(when)
   this.then = format_matrix(then)
 
   this.match = function(grid, x, y) {
     let element = grid[y][x]
+    console.log('element', element)
     // console.log('will try to match rule', this.when)
     let matching = true
     for (let _y = 0; _y < 3; _y++) {
@@ -85,9 +86,7 @@ function Rule({ when, then }) {
               grid[y+_y-1][x+_x-1] = empty
             break;
           default:
-            if (value.name[0] !== symbol) {
-              matching = false
-            }
+            grid[y+_y-1][x+_x-1] = elements[symbol]
         }
       }
     }
@@ -103,19 +102,16 @@ function Element({ name = 'empty', rules = [], color = 'white' }) {
 
 function clearGrid(grid) {
   if (!grid) grid = []
-  for (let y = 0; y < GRID_SIZE; y++) {
+  for (let y = 0; y < GRID_HEIGHT; y++) {
     grid[y] = []
-    for (let x = 0; x < GRID_SIZE; x++) {
+    for (let x = 0; x < GRID_WIDTH; x++) {
       grid[y].push(new Element({}))
     }
   }
   return grid
 }
 
-let empty = new Element({
-  name: 'empty',
-  rules: []
-})
+let empty = new Element({})
 let resource = new Element({
   name: 'resource',
   color: 'blue',
@@ -328,5 +324,6 @@ let elements = {
   's': swapline,
 }
 
-const GRID_SIZE = 16
+const GRID_WIDTH = 26
+const GRID_HEIGHT = 26
 let grid = clearGrid()
