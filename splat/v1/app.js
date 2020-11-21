@@ -31,7 +31,6 @@ on(emitter, 'applyRules', function(e) {
   emit(emitter, 'updateGrid', state)
 })
 on(emitter, 'selectElement', function(e) {
-  console.log('select element', e.detail)
   state.selectedElement = e.detail
   emit(emitter, 'render', state)
 })
@@ -89,7 +88,7 @@ on(emitter, 'play', () => {
         1 + parseInt(Math.random()*(GRID_WIDTH-2))
       ]
     )
-  }, 10)
+  }, 1)
   emit(emitter, 'render', state)
 })
 on(emitter, 'stop', () => {

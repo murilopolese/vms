@@ -1,0 +1,122 @@
+:root {
+  --res: 3vh;
+  font-size: calc(100vh / 40);
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  outline: none;
+  color: grey;
+  text-decoration: none;
+  font-size: var(--res);
+  font-family: monospace;
+  line-height: var(--res);
+  font-size: var(--res);
+  text-transform: uppercase;
+  list-style: none;
+  position: relative;
+}
+body {
+  margin: 0;
+  font-family: monospace;
+  line-height: var(--res);
+  font-size: var(--res);
+  background: lightblue;
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+.selected {
+  color: white;
+  background: grey;
+}
+button {
+  cursor: pointer;
+  display: block;
+  transition: color 0.1s, background 0.1s;
+}
+button:hover {
+  color: white;
+  background: lightgrey;
+}
+ul li {
+  display: inline;
+}
+
+#app {
+  width: calc(var(--res) * 40);
+  height: calc(var(--res) * 30);
+  background: white;
+  margin: auto;
+  display: flex;
+}
+
+#app button {
+  width: var(--res);
+  height: var(--res);
+}
+
+#grid {
+  width: calc(var(--res) * 30)
+}
+
+#grid .element-picker {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--res) * -2);
+  width: calc(var(--res) * 2);
+  transform: translate(0, -50%);
+  background: lightgrey;
+  text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+#grid .grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+#editor {
+  width: calc(var(--res) * 10);
+  background: lightgrey;
+}
+
+#editor .element-list {
+  width: 100%;
+  height: calc(var(--res) * 2);
+  overflow-x: scroll;
+  display: flex;
+}
+
+#editor .rules {
+  overflow-y: scroll;
+  height: 80%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#editor .rule {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: calc(var(--res) * 0.5);
+  margin-bottom: calc(var(--res) * 0.5);
+}
+#editor .rule .when,
+#editor .rule .then {
+  display: flex;
+}
+
+#editor .element-picker {
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+}
