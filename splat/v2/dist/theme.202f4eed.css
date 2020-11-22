@@ -32,6 +32,7 @@ body {
 button {
   cursor: pointer;
   display: block;
+  transition: color 0.1s, background 0.1s;
 }
 button:hover {
   color: white;
@@ -81,6 +82,10 @@ ul li {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
+}
+#grid .element-picker button:hover {
+  background: white !important;
+  color: black;
 }
 #grid .grid {
   display: flex;

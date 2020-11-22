@@ -111,7 +111,9 @@ function clearGrid(grid) {
   return grid
 }
 
-let elements = {}
+let elements = {
+  '_': empty
+}
 
 for (let i = 65; i < 91; i++) {
   let c = String.fromCharCode(i)

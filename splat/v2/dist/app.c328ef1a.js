@@ -2759,7 +2759,9 @@ function clearGrid(grid) {
   return grid;
 }
 
-var elements = {};
+var elements = {
+  '_': empty
+};
 
 for (var i = 65; i < 91; i++) {
   var c = String.fromCharCode(i);
@@ -2783,10 +2785,10 @@ module.exports = {
 },{}],"app.js":[function(require,module,exports) {
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
-function _templateObject14() {
+function _templateObject15() {
   var data = _taggedTemplateLiteral(["<canvas width=", " height=", "></canvas>"]);
 
-  _templateObject14 = function _templateObject14() {
+  _templateObject15 = function _templateObject15() {
     return data;
   };
 
@@ -2813,8 +2815,18 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
-function _templateObject13() {
+function _templateObject14() {
   var data = _taggedTemplateLiteral(["\n    <div id=\"editor\">\n      <div class=\"element-list\">\n        ", "\n      </div>\n      <div class=\"rules\">\n        ", "\n        <button class=\"add-rule\" onclick=", ">+</button>\n      </div>\n      <div class=\"element-picker\">\n        ", "\n      </div>\n    </div>\n  "]);
+
+  _templateObject14 = function _templateObject14() {
+    return data;
+  };
+
+  return data;
+}
+
+function _templateObject13() {
+  var data = _taggedTemplateLiteral(["\n                    <button onclick=", ">", "</button>\n                  "]);
 
   _templateObject13 = function _templateObject13() {
     return data;
@@ -2824,7 +2836,7 @@ function _templateObject13() {
 }
 
 function _templateObject12() {
-  var data = _taggedTemplateLiteral(["\n                    <button onclick=", ">", "</button>\n                  "]);
+  var data = _taggedTemplateLiteral(["\n              <div>\n                ", "\n              </div>\n            "]);
 
   _templateObject12 = function _templateObject12() {
     return data;
@@ -2834,7 +2846,7 @@ function _templateObject12() {
 }
 
 function _templateObject11() {
-  var data = _taggedTemplateLiteral(["\n              <div>\n                ", "\n              </div>\n            "]);
+  var data = _taggedTemplateLiteral(["\n                    <button onclick=", ">", "</button>\n                  "]);
 
   _templateObject11 = function _templateObject11() {
     return data;
@@ -2844,7 +2856,7 @@ function _templateObject11() {
 }
 
 function _templateObject10() {
-  var data = _taggedTemplateLiteral(["\n                    <button onclick=", ">", "</button>\n                  "]);
+  var data = _taggedTemplateLiteral(["\n              <div>\n                ", "\n              </div>\n            "]);
 
   _templateObject10 = function _templateObject10() {
     return data;
@@ -2854,7 +2866,7 @@ function _templateObject10() {
 }
 
 function _templateObject9() {
-  var data = _taggedTemplateLiteral(["\n              <div>\n                ", "\n              </div>\n            "]);
+  var data = _taggedTemplateLiteral(["\n      <div class=\"rule\">\n        <div class=\"when\">\n          ", "\n        </div>\n        <div> ", " </div>\n        <div class=\"then\">\n          ", "\n        </div>\n      </div>\n    "]);
 
   _templateObject9 = function _templateObject9() {
     return data;
@@ -2864,7 +2876,7 @@ function _templateObject9() {
 }
 
 function _templateObject8() {
-  var data = _taggedTemplateLiteral(["\n      <div class=\"rule\">\n        <div class=\"when\">\n          ", "\n        </div>\n        <div> ", " </div>\n        <div class=\"then\">\n          ", "\n        </div>\n      </div>\n    "]);
+  var data = _taggedTemplateLiteral(["\n          <button\n            class=", "\n            onclick=", "\n            >\n            ", "\n          </button>"]);
 
   _templateObject8 = function _templateObject8() {
     return data;
@@ -2884,7 +2896,7 @@ function _templateObject7() {
 }
 
 function _templateObject6() {
-  var data = _taggedTemplateLiteral(["\n          <button\n            class=", "\n            onclick=", "\n            >\n            ", "\n          </button>"]);
+  var data = _taggedTemplateLiteral(["\n        <button\n          class=", "\n          onclick=", "\n          >\n          ", "\n        </button>\n      "]);
 
   _templateObject6 = function _templateObject6() {
     return data;
@@ -2894,7 +2906,7 @@ function _templateObject6() {
 }
 
 function _templateObject5() {
-  var data = _taggedTemplateLiteral(["\n        <button\n          class=", "\n          onclick=", "\n          >\n          ", "\n        </button>\n      "]);
+  var data = _taggedTemplateLiteral(["\n  <div id=\"grid\">\n    <div class=\"element-picker\">\n      ", "\n      ", "\n    </div>\n    <div class=\"grid\">\n      ", "\n    </div>\n  </div>\n  "]);
 
   _templateObject5 = function _templateObject5() {
     return data;
@@ -2904,7 +2916,7 @@ function _templateObject5() {
 }
 
 function _templateObject4() {
-  var data = _taggedTemplateLiteral(["\n  <div id=\"grid\">\n    <div class=\"element-picker\">\n      ", "\n    </div>\n    <div class=\"grid\">\n      ", "\n    </div>\n  </div>\n  "]);
+  var data = _taggedTemplateLiteral(["\n          <button\n            style=\"background: ", "\"\n            onclick=", "\n            >\n          ", "\n          </button>\n        "]);
 
   _templateObject4 = function _templateObject4() {
     return data;
@@ -2914,7 +2926,7 @@ function _templateObject4() {
 }
 
 function _templateObject3() {
-  var data = _taggedTemplateLiteral(["\n          <button\n            style=\"background: ", "\"\n            onclick=", "\n            >\n          ", "\n          </button>\n        "]);
+  var data = _taggedTemplateLiteral(["\n      <button onclick=", ">", "</button>\n      <button onclick=", ">", "</button>\n      <button onclick=", ">", "</button>\n    "]);
 
   _templateObject3 = function _templateObject3() {
     return data;
@@ -2958,7 +2970,7 @@ var _require = require('./splat.js'),
     elements = _require.elements,
     clearGrid = _require.clearGrid;
 
-var colors = ['#000000', '#222034', '#45283c', '#663931', '#8f563b', '#df7126', '#d9a066', '#eec39a', '#fbf236', '#99e550', '#6abe30', '#37946e', '#4b692f', '#524b24', '#323c39', '#3f3f74', '#306082', '#5b6ee1', // '#639bff', '#5fcde4', '#cbdbfc', '#ffffff', '#9badb7', '#847e87',
+var colors = ['#FFFFFF', '#000000', '#222034', '#45283c', '#663931', '#8f563b', '#df7126', '#d9a066', '#eec39a', '#fbf236', '#99e550', '#6abe30', '#37946e', '#4b692f', '#524b24', '#323c39', '#3f3f74', '#306082', '#5b6ee1', // '#639bff', '#5fcde4', '#cbdbfc', '#ffffff', '#9badb7', '#847e87',
 '#696a6a', '#595652', '#76428a', '#ac3232', '#d95763', '#d77bba', '#8f974a', '#8a6f30'];
 var app = choo();
 app.use(store);
@@ -2968,26 +2980,33 @@ app.mount('#app');
 function store(state, emitter) {
   state.elementsDict = elements;
   state.elements = Object.values(elements);
-  state.grid = grid.slice();
+  state.grid = grid.map(function (r) {
+    return r.slice();
+  });
   state.grid[5][5] = elements['X'];
   state.editingElement = 'A';
-  state.stampingGrid = 'A';
+  state.stampingGrid = 'X';
   state.stampingRule = '@';
   state.interval = 0;
+  state.playing = false;
   console.log('initialState', state);
   emitter.on('selectEditingElement', function (symbol) {
+    console.log('select stamping element');
     state.editingElement = symbol;
     emitter.emit('render');
   });
   emitter.on('selectStampingGrid', function (symbol) {
+    console.log('select stamping grid');
     state.stampingGrid = symbol;
     emitter.emit('render');
   });
   emitter.on('selectStampingRule', function (symbol) {
+    console.log('select stamping rule');
     state.stampingRule = symbol;
     emitter.emit('render');
   });
   emitter.on('addRule', function () {
+    console.log('new rule');
     var index = state.elements.findIndex(function (e) {
       return e.name === state.editingElement;
     });
@@ -2995,7 +3014,7 @@ function store(state, emitter) {
     emitter.emit('render');
   });
   emitter.on('stampGrid', function (x, y) {
-    console.log('stamp grid');
+    console.log('stamp grid', x, y);
     var element = state.elements.find(function (el) {
       return el.name === state.stampingGrid;
     });
@@ -3003,7 +3022,7 @@ function store(state, emitter) {
     emitter.emit('render');
   });
   emitter.on('stampRule', function (type, i, x, y) {
-    console.log('stampRule');
+    console.log('stamp rule', type, i, x, y);
     var index = state.elements.findIndex(function (e) {
       return e.name === state.editingElement;
     });
@@ -3025,20 +3044,29 @@ function store(state, emitter) {
           break;
         }
       }
-    } // emitter.emit('render')
-
-
-    state.cache(Canvas, 'canvas').render(state, emitter.emit);
+    }
+  });
+  emitter.on('resetGrid', function () {
+    console.log('reset grid');
+    state.grid = state.grid = grid.map(function (r) {
+      return r.slice();
+    });
   });
   emitter.on('play', function () {
-    state.interval = setInterval(function () {
-      emitter.emit('applyRules');
-    }, 10);
+    console.log('play');
+    state.playing = true;
   });
   emitter.on('stop', function () {
-    clearInterval(state.interval);
+    console.log('stop');
+    state.playing = false;
   });
-  emitter.emit('play');
+  state.interval = setInterval(function () {
+    if (state.playing) {
+      emitter.emit('applyRules');
+    }
+
+    state.cache(Canvas, 'canvas').render(state, emitter.emit);
+  }, 50);
 }
 
 function Layout(state, emit) {
@@ -3058,6 +3086,16 @@ function Grid(state, emit) {
     });
   }
 
+  function GameControls() {
+    return html(_templateObject3(), function () {
+      return emit('play');
+    }, ">", function () {
+      return emit('stop');
+    }, "||", function () {
+      return emit('resetGrid');
+    }, "<");
+  }
+
   function ButtonStage() {
     var buttons = [];
 
@@ -3072,7 +3110,7 @@ function Grid(state, emit) {
           return emit('stampGrid', x, y);
         };
 
-        buttons.push(html(_templateObject3(), colors[i % colors.length], onclick, el.name));
+        buttons.push(html(_templateObject4(), colors[i % colors.length], onclick, el.name));
       };
 
       for (var x = 0; x < 30; x++) {
@@ -3091,7 +3129,7 @@ function Grid(state, emit) {
     return state.cache(Canvas, 'canvas').render(state, emit);
   }
 
-  return html(_templateObject4(), ElementPicker(), CanvasStage());
+  return html(_templateObject5(), GameControls(), ElementPicker(), CanvasStage());
 }
 
 function Editor(state, emit) {
@@ -3103,12 +3141,12 @@ function Editor(state, emit) {
         return emit('selectEditingElement', el.name);
       };
 
-      return html(_templateObject5(), selectedClass, onclick, el.name);
+      return html(_templateObject6(), selectedClass, onclick, el.name);
     });
   }
 
   function ElementPicker() {
-    var symbols = ['@', '.', '?', '_'];
+    var symbols = ['@', '.', '?'];
     return [symbols.map(function (symbol) {
       var selectedClass = symbol === state.stampingRule ? 'selected' : '';
 
@@ -3116,7 +3154,7 @@ function Editor(state, emit) {
         return emit('selectStampingRule', symbol);
       };
 
-      return html(_templateObject6(), selectedClass, onclick, symbol);
+      return html(_templateObject7(), selectedClass, onclick, symbol);
     }), state.elements.map(function (el) {
       var selectedClass = el.name === state.stampingRule ? 'selected' : '';
 
@@ -3124,28 +3162,28 @@ function Editor(state, emit) {
         return emit('selectStampingRule', el.name);
       };
 
-      return html(_templateObject7(), selectedClass, onclick, el.name);
+      return html(_templateObject8(), selectedClass, onclick, el.name);
     })];
   }
 
   function Rule(_ref, i) {
     var when = _ref.when,
         then = _ref.then;
-    return html(_templateObject8(), when.map(function (row, y) {
-      return html(_templateObject9(), row.map(function (symbol, x) {
+    return html(_templateObject9(), when.map(function (row, y) {
+      return html(_templateObject10(), row.map(function (symbol, x) {
         var onclick = function onclick() {
           return emit('stampRule', 'when', i, x, y);
         };
 
-        return html(_templateObject10(), onclick, symbol);
+        return html(_templateObject11(), onclick, symbol);
       }));
     }), "=>", then.map(function (row, y) {
-      return html(_templateObject11(), row.map(function (symbol, x) {
+      return html(_templateObject12(), row.map(function (symbol, x) {
         var onclick = function onclick() {
           return emit('stampRule', 'then', i, x, y);
         };
 
-        return html(_templateObject12(), onclick, symbol);
+        return html(_templateObject13(), onclick, symbol);
       }));
     }));
   }
@@ -3153,7 +3191,7 @@ function Editor(state, emit) {
   var elementIndex = state.elements.findIndex(function (el) {
     return el.name === state.editingElement;
   });
-  return html(_templateObject13(), ElementList(), state.elements[elementIndex].rules.map(Rule), function () {
+  return html(_templateObject14(), ElementList(), state.elements[elementIndex].rules.map(Rule), function () {
     return emit('addRule');
   }, ElementPicker());
 }
@@ -3186,14 +3224,22 @@ var Canvas = /*#__PURE__*/function (_Component) {
 
       var context = this.element.getContext('2d');
       context.clearRect(0, 0, this.element.width, this.element.height);
-      context.fillStyle = '#000000';
       var hoveringX = parseInt(map(this.cursor.x, 0, this.size, 0, this.n));
       var hoveringY = parseInt(map(this.cursor.y, 0, this.size, 0, this.n));
 
       for (var y = 0; y < this.n; y++) {
         for (var x = 0; x < this.n; x++) {
           if (hoveringX === x && hoveringY === y) {
-            context.fillStyle = '#000000';
+            var index = state.elements.findIndex(function (e) {
+              return e.name === state.stampingGrid;
+            });
+
+            if (index !== -1) {
+              context.fillStyle = colors[index];
+            } else {
+              context.fillStyle = '#000000';
+            }
+
             context.fillRect(x * this.res, y * this.res, this.res, this.res);
             context.fillStyle = '#FFFFFF';
             context.fillText(state.grid[y][x].name, this.res / 4 + x * this.res, this.res / 4 + y * this.res);
@@ -3225,7 +3271,7 @@ var Canvas = /*#__PURE__*/function (_Component) {
     value: function createElement(state, emit) {
       var _this3 = this;
 
-      var canvas = html(_templateObject14(), this.size, this.size);
+      var canvas = html(_templateObject15(), this.size, this.size);
       var context = canvas.getContext('2d');
       context.font = "".concat(this.res, "px monospace");
       context.textAlign = 'left';
@@ -3245,7 +3291,6 @@ var Canvas = /*#__PURE__*/function (_Component) {
         };
       });
       canvas.addEventListener('mousedown', function (e) {
-        console.log(e, _this3.cursor);
         var hoveringX = parseInt(map(_this3.cursor.x, 0, _this3.size, 0, _this3.n));
         var hoveringY = parseInt(map(_this3.cursor.y, 0, _this3.size, 0, _this3.n));
         emit('stampGrid', hoveringX, hoveringY);
@@ -3295,7 +3340,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53465" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53808" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

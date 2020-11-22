@@ -11,6 +11,7 @@ let {
 } = require('./splat.js')
 
 const colors = [
+  '#FFFFFF',
   '#000000', '#222034', '#45283c', '#663931', '#8f563b', '#df7126',
   '#d9a066', '#eec39a', '#fbf236', '#99e550', '#6abe30', '#37946e',
   '#4b692f', '#524b24', '#323c39', '#3f3f74', '#306082', '#5b6ee1',
@@ -30,45 +31,50 @@ app.mount('#app')
 function store(state, emitter) {
   state.elementsDict = elements
   state.elements = Object.values(elements)
-  state.grid = grid.slice()
+  state.grid = grid.map(r => r.slice())
   state.grid[5][5] = elements['X']
   state.editingElement = 'A'
-  state.stampingGrid = 'A'
+  state.stampingGrid = 'X'
   state.stampingRule = '@'
   state.interval = 0
+  state.playing = false
 
   console.log('initialState', state)
 
   emitter.on('selectEditingElement', function(symbol) {
+    console.log('select stamping element')
     state.editingElement = symbol
     emitter.emit('render')
   })
 
   emitter.on('selectStampingGrid', function(symbol) {
+    console.log('select stamping grid')
     state.stampingGrid = symbol
     emitter.emit('render')
   })
 
   emitter.on('selectStampingRule', function(symbol) {
+    console.log('select stamping rule')
     state.stampingRule = symbol
     emitter.emit('render')
   })
 
   emitter.on('addRule', function() {
+    console.log('new rule')
     let index = state.elements.findIndex(e => e.name === state.editingElement)
     state.elements[index].rules.push(new Rule({}))
     emitter.emit('render')
   })
 
   emitter.on('stampGrid', function(x, y) {
-    console.log('stamp grid')
+    console.log('stamp grid', x, y)
     let element = state.elements.find(el => el.name === state.stampingGrid)
     state.grid[y][x] = element
     emitter.emit('render')
   })
 
   emitter.on('stampRule', function(type, i, x, y) {
-    console.log('stampRule')
+    console.log('stamp rule', type, i, x, y)
     let index = state.elements.findIndex(e => e.name === state.editingElement)
     state.elements[index].rules[i][type][y][x] = state.stampingRule
     emitter.emit('render')
@@ -88,21 +94,29 @@ function store(state, emitter) {
         }
       }
     }
-    // emitter.emit('render')
-    state.cache(Canvas, 'canvas').render(state, emitter.emit)
+  })
+
+  emitter.on('resetGrid', function() {
+    console.log('reset grid')
+    state.grid = state.grid = grid.map(r => r.slice())
   })
 
   emitter.on('play', function() {
-    state.interval = setInterval(() => {
-      emitter.emit('applyRules')
-    }, 10)
+    console.log('play')
+    state.playing = true
   })
 
   emitter.on('stop', function() {
-    clearInterval(state.interval)
+    console.log('stop')
+    state.playing = false
   })
 
-  emitter.emit('play')
+  state.interval = setInterval(() => {
+    if (state.playing) {
+      emitter.emit('applyRules')
+    }
+    state.cache(Canvas, 'canvas').render(state, emitter.emit)
+  }, 50)
 
 }
 
@@ -131,6 +145,13 @@ function Grid(state, emit) {
       `
     })
   }
+  function GameControls() {
+    return html`
+      <button onclick=${() => emit('play')}>${`>`}</button>
+      <button onclick=${() => emit('stop')}>${`||`}</button>
+      <button onclick=${() => emit('resetGrid')}>${`<`}</button>
+    `
+  }
   function ButtonStage() {
     let buttons = []
     for (let y = 0; y < 30; y++) {
@@ -156,6 +177,7 @@ function Grid(state, emit) {
   return html`
   <div id="grid">
     <div class="element-picker">
+      ${GameControls()}
       ${ElementPicker()}
     </div>
     <div class="grid">
@@ -181,7 +203,7 @@ function Editor(state, emit) {
     })
   }
   function ElementPicker() {
-    let symbols = ['@', '.', '?', '_']
+    let symbols = ['@', '.', '?']
 
     return [
       symbols.map((symbol) => {
@@ -272,7 +294,6 @@ class Canvas extends Component {
   update(state) {
     let context = this.element.getContext('2d')
     context.clearRect(0, 0, this.element.width, this.element.height)
-    context.fillStyle = '#000000'
     let hoveringX = parseInt(
       map(this.cursor.x, 0, this.size, 0, this.n)
     )
@@ -282,7 +303,12 @@ class Canvas extends Component {
     for (let y = 0; y < this.n; y++) {
       for (let x = 0; x < this.n; x++) {
         if (hoveringX === x && hoveringY === y) {
-          context.fillStyle = '#000000'
+          let index = state.elements.findIndex(e => e.name === state.stampingGrid)
+          if (index !== -1) {
+            context.fillStyle = colors[index]
+          } else {
+            context.fillStyle = '#000000'
+          }
           context.fillRect(
             x*this.res,
             y*this.res,
@@ -342,7 +368,6 @@ class Canvas extends Component {
       this.cursor = { x: relativeX, y: relativeY }
     })
     canvas.addEventListener('mousedown', (e) => {
-      console.log(e, this.cursor)
       let hoveringX = parseInt(
         map(this.cursor.x, 0, this.size, 0, this.n)
       )
