@@ -1,0 +1,17 @@
+{
+  "name": "v2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "watch": "parcel watch index.html --public-url ./ --out-dir dist",
+    "build": "parcel build index.html --public-url ./ --out-dir dist"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "choo": "^7.1.0",
+    "less": "^3.12.2",
+    "parcel-bundler": "^1.12.4"
+  }
+}

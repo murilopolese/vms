@@ -11,7 +11,6 @@
   outline: none;
   color: grey;
   text-decoration: none;
-  font-size: var(--res);
   font-family: monospace;
   line-height: var(--res);
   font-size: var(--res);
@@ -30,14 +29,9 @@ body {
   height: 100vh;
   overflow: hidden;
 }
-.selected {
-  color: white;
-  background: grey;
-}
 button {
   cursor: pointer;
   display: block;
-  transition: color 0.1s, background 0.1s;
 }
 button:hover {
   color: white;
@@ -46,28 +40,40 @@ button:hover {
 ul li {
   display: inline;
 }
-
+.selected {
+  color: white;
+  background: grey;
+}
 #app {
-  width: calc(var(--res) * 40);
-  height: calc(var(--res) * 30);
-  background: white;
+  width: calc(var(--res) * 44);
+  height: calc(var(--res) * 32);
   margin: auto;
   display: flex;
 }
-
 #app button {
   width: var(--res);
   height: var(--res);
 }
-
-#grid {
-  width: calc(var(--res) * 30)
+@media (max-width: 140vh) {
+  :root {
+    --res: 2vw;
+    font-size: calc(100vw / 42);
+  }
 }
-
+#grid {
+  width: calc(var(--res) * 34);
+  padding: var(--res);
+  margin-left: var(--res);
+  margin-right: var(--res);
+  background: white;
+}
+#grid button {
+  color: white;
+}
 #grid .element-picker {
   position: absolute;
   top: 50%;
-  left: calc(var(--res) * -2);
+  left: calc(var(--res) * -3);
   width: calc(var(--res) * 2);
   transform: translate(0, -50%);
   background: lightgrey;
@@ -76,24 +82,32 @@ ul li {
   flex-wrap: wrap;
   justify-content: space-around;
 }
-
 #grid .grid {
   display: flex;
   flex-wrap: wrap;
+  width: 100%;
+  height: 100%;
 }
-
+#grid .grid canvas {
+  width: 100%;
+  height: 100%;
+  background: white;
+  cursor: pointer;
+}
 #editor {
   width: calc(var(--res) * 10);
+  padding: var(--res);
   background: lightgrey;
 }
-
 #editor .element-list {
   width: 100%;
   height: calc(var(--res) * 2);
   overflow-x: scroll;
   display: flex;
 }
-
+#editor .element-list button {
+  margin: 0 calc(var(--res) * 0.5);
+}
 #editor .rules {
   overflow-y: scroll;
   height: 80%;
@@ -111,12 +125,21 @@ ul li {
 #editor .rule .when,
 #editor .rule .then {
   display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
 }
-
-#editor .element-picker {
-  width: 100%;
-  position: absolute;
-  bottom: 0;
+#editor .rule .when > div,
+#editor .rule .then > div {
   display: flex;
   flex-wrap: wrap;
 }
+#editor .element-picker {
+  display: flex;
+  flex-wrap: wrap;
+}
+#editor .add-rule {
+  padding: var(--res);
+}
+
+
+/*# sourceMappingURL=theme.202f4eed.css.map */
