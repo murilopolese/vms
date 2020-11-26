@@ -140,6 +140,10 @@ function format_matrix(ruleArray) {
   return formatted;
 }
 
+function hasLowerCase(str) {
+  return /[a-z]/.test(str);
+}
+
 function Rule(_ref) {
   var _ref$when = _ref.when,
       when = _ref$when === void 0 ? [[]] : _ref$when,
@@ -149,9 +153,10 @@ function Rule(_ref) {
   this.then = format_matrix(then);
 
   this.match = function (grid, x, y) {
-    var element = grid[y][x]; // console.log('will try to match rule', this.when)
+    var element = grid[y][x];
+    var votes = {}; // console.log('will try to match rule', this.when)
 
-    var matching = true;
+    var givenMatch = true;
 
     for (var _y = 0; _y < 3; _y++) {
       for (var _x = 0; _x < 3; _x++) {
@@ -161,10 +166,12 @@ function Rule(_ref) {
         switch (symbol) {
           case '@':
             if (value.name !== element.name) {
-              matching = false;
+              givenMatch = false;
             }
 
             break;
+
+          case null: // Do nothing
 
           case '.':
             // it could be anything here
@@ -172,32 +179,41 @@ function Rule(_ref) {
 
           case '?':
             if (value.name === empty.name) {
-              matching = false;
+              givenMatch = false;
             }
 
             break;
 
           case '_':
             if (value.name !== empty.name) {
-              matching = false;
+              givenMatch = false;
             }
 
             break;
 
-          case null:
-            // Do nothing
-            break;
-
           default:
-            if (value.name[0] !== symbol) {
-              matching = false;
+            // Check if it's a vote or a given
+            if (hasLowerCase(symbol)) {
+              if (votes[symbol] === undefined) {
+                votes[symbol] = 0;
+              }
+
+              if (value.name[0] === symbol.toUpperCase()) {
+                votes[symbol] += 1;
+              }
+            } else {
+              if (value.name[0] !== symbol) {
+                givenMatch = false;
+              }
             }
 
         }
       }
     }
 
-    return matching;
+    var voteCounts = Object.values(votes);
+    voteMatch = voteCounts.length == 0 || voteCounts.indexOf(0) === -1;
+    return givenMatch && voteMatch;
   };
 
   this.apply = function (grid, x, y) {
@@ -223,7 +239,7 @@ function Rule(_ref) {
             break;
 
           default:
-            grid[y + _y - 1][x + _x - 1] = elements[symbol];
+            grid[y + _y - 1][x + _x - 1] = elements[symbol.toUpperCase()];
         }
       }
     }
@@ -244,10 +260,6 @@ function Element(_ref2) {
   this.color = color;
 }
 
-var empty = new Element({
-  name: '_'
-});
-
 function clearGrid(grid) {
   if (!grid) grid = [];
 
@@ -262,6 +274,9 @@ function clearGrid(grid) {
   return grid;
 }
 
+var empty = new Element({
+  name: '_'
+});
 var elements = {
   '_': empty
 };
@@ -313,7 +328,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54842" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62481" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

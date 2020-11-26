@@ -16,7 +16,6 @@
   font-family: monospace;
   line-height: var(--res);
   font-size: var(--res);
-  text-transform: uppercase;
   list-style: none;
   position: relative;
 }
@@ -54,7 +53,7 @@ ul li {
 }
 
 #app {
-  width: calc(var(--res) * 44);
+  width: calc(var(--res) * 46);
   height: calc(var(--res) * 32);
   margin: auto;
   display: flex;
@@ -66,7 +65,7 @@ ul li {
 @media (max-width: 140vh) {
   :root {
     --res: 2vw;
-    font-size: calc(100vw / 42);
+    font-size: calc(100vw / 46);
   }
 }
 
@@ -112,9 +111,11 @@ ul li {
 
 
 #editor {
-  width: calc(var(--res) * 10);
+  width: calc(var(--res) * 12);
   padding: var(--res);
   background: lightgrey;
+  display: flex;
+  flex-direction: column;
   .element-list {
     width: 100%;
     height: calc(var(--res) * 2);
@@ -126,10 +127,10 @@ ul li {
   }
   .rules {
     overflow-y: scroll;
-    height: 80%;
     display: flex;
     flex-direction: column;
     align-items: center;
+    flex-grow: 1;
   }
   .rule {
     display: flex;

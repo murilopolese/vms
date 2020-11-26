@@ -2637,6 +2637,10 @@ function format_matrix(ruleArray) {
   return formatted;
 }
 
+function hasLowerCase(str) {
+  return /[a-z]/.test(str);
+}
+
 function Rule(_ref) {
   var _ref$when = _ref.when,
       when = _ref$when === void 0 ? [[]] : _ref$when,
@@ -2646,9 +2650,10 @@ function Rule(_ref) {
   this.then = format_matrix(then);
 
   this.match = function (grid, x, y) {
-    var element = grid[y][x]; // console.log('will try to match rule', this.when)
+    var element = grid[y][x];
+    var votes = {}; // console.log('will try to match rule', this.when)
 
-    var matching = true;
+    var givenMatch = true;
 
     for (var _y = 0; _y < 3; _y++) {
       for (var _x = 0; _x < 3; _x++) {
@@ -2658,10 +2663,12 @@ function Rule(_ref) {
         switch (symbol) {
           case '@':
             if (value.name !== element.name) {
-              matching = false;
+              givenMatch = false;
             }
 
             break;
+
+          case null: // Do nothing
 
           case '.':
             // it could be anything here
@@ -2669,32 +2676,41 @@ function Rule(_ref) {
 
           case '?':
             if (value.name === empty.name) {
-              matching = false;
+              givenMatch = false;
             }
 
             break;
 
           case '_':
             if (value.name !== empty.name) {
-              matching = false;
+              givenMatch = false;
             }
 
             break;
 
-          case null:
-            // Do nothing
-            break;
-
           default:
-            if (value.name[0] !== symbol) {
-              matching = false;
+            // Check if it's a vote or a given
+            if (hasLowerCase(symbol)) {
+              if (votes[symbol] === undefined) {
+                votes[symbol] = 0;
+              }
+
+              if (value.name[0] === symbol.toUpperCase()) {
+                votes[symbol] += 1;
+              }
+            } else {
+              if (value.name[0] !== symbol) {
+                givenMatch = false;
+              }
             }
 
         }
       }
     }
 
-    return matching;
+    var voteCounts = Object.values(votes);
+    voteMatch = voteCounts.length == 0 || voteCounts.indexOf(0) === -1;
+    return givenMatch && voteMatch;
   };
 
   this.apply = function (grid, x, y) {
@@ -2720,7 +2736,7 @@ function Rule(_ref) {
             break;
 
           default:
-            grid[y + _y - 1][x + _x - 1] = elements[symbol];
+            grid[y + _y - 1][x + _x - 1] = elements[symbol.toUpperCase()];
         }
       }
     }
@@ -2741,10 +2757,6 @@ function Element(_ref2) {
   this.color = color;
 }
 
-var empty = new Element({
-  name: '_'
-});
-
 function clearGrid(grid) {
   if (!grid) grid = [];
 
@@ -2759,6 +2771,9 @@ function clearGrid(grid) {
   return grid;
 }
 
+var empty = new Element({
+  name: '_'
+});
 var elements = {
   '_': empty
 };
@@ -2785,10 +2800,10 @@ module.exports = {
 },{}],"app.js":[function(require,module,exports) {
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
-function _templateObject15() {
+function _templateObject16() {
   var data = _taggedTemplateLiteral(["<canvas width=", " height=", "></canvas>"]);
 
-  _templateObject15 = function _templateObject15() {
+  _templateObject16 = function _templateObject16() {
     return data;
   };
 
@@ -2815,8 +2830,18 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
+function _templateObject15() {
+  var data = _taggedTemplateLiteral(["\n    <div id=\"editor\">\n      <div class=\"element-list\">\n        ", "\n      </div>\n      <div class=\"rules\">\n        ", "\n        <button class=\"add-rule\" onclick=", ">+</button>\n      </div>\n      <div class=\"element-picker\">\n        ", "\n      </div>\n      <div class=\"element-picker\">\n        ", "\n      </div>\n      <div class=\"element-picker\">\n        ", "\n      </div>\n    </div>\n  "]);
+
+  _templateObject15 = function _templateObject15() {
+    return data;
+  };
+
+  return data;
+}
+
 function _templateObject14() {
-  var data = _taggedTemplateLiteral(["\n    <div id=\"editor\">\n      <div class=\"element-list\">\n        ", "\n      </div>\n      <div class=\"rules\">\n        ", "\n        <button class=\"add-rule\" onclick=", ">+</button>\n      </div>\n      <div class=\"element-picker\">\n        ", "\n      </div>\n    </div>\n  "]);
+  var data = _taggedTemplateLiteral(["\n                    <button onclick=", ">", "</button>\n                  "]);
 
   _templateObject14 = function _templateObject14() {
     return data;
@@ -2826,7 +2851,7 @@ function _templateObject14() {
 }
 
 function _templateObject13() {
-  var data = _taggedTemplateLiteral(["\n                    <button onclick=", ">", "</button>\n                  "]);
+  var data = _taggedTemplateLiteral(["\n              <div>\n                ", "\n              </div>\n            "]);
 
   _templateObject13 = function _templateObject13() {
     return data;
@@ -2836,7 +2861,7 @@ function _templateObject13() {
 }
 
 function _templateObject12() {
-  var data = _taggedTemplateLiteral(["\n              <div>\n                ", "\n              </div>\n            "]);
+  var data = _taggedTemplateLiteral(["\n                    <button onclick=", ">", "</button>\n                  "]);
 
   _templateObject12 = function _templateObject12() {
     return data;
@@ -2846,7 +2871,7 @@ function _templateObject12() {
 }
 
 function _templateObject11() {
-  var data = _taggedTemplateLiteral(["\n                    <button onclick=", ">", "</button>\n                  "]);
+  var data = _taggedTemplateLiteral(["\n              <div>\n                ", "\n              </div>\n            "]);
 
   _templateObject11 = function _templateObject11() {
     return data;
@@ -2856,7 +2881,7 @@ function _templateObject11() {
 }
 
 function _templateObject10() {
-  var data = _taggedTemplateLiteral(["\n              <div>\n                ", "\n              </div>\n            "]);
+  var data = _taggedTemplateLiteral(["\n      <div class=\"rule\">\n        <div class=\"when\">\n          ", "\n        </div>\n        <div> ", " </div>\n        <div class=\"then\">\n          ", "\n        </div>\n      </div>\n    "]);
 
   _templateObject10 = function _templateObject10() {
     return data;
@@ -2866,7 +2891,7 @@ function _templateObject10() {
 }
 
 function _templateObject9() {
-  var data = _taggedTemplateLiteral(["\n      <div class=\"rule\">\n        <div class=\"when\">\n          ", "\n        </div>\n        <div> ", " </div>\n        <div class=\"then\">\n          ", "\n        </div>\n      </div>\n    "]);
+  var data = _taggedTemplateLiteral(["\n        <button\n          class=", "\n          onclick=", "\n          >\n          ", "\n        </button>"]);
 
   _templateObject9 = function _templateObject9() {
     return data;
@@ -2876,7 +2901,7 @@ function _templateObject9() {
 }
 
 function _templateObject8() {
-  var data = _taggedTemplateLiteral(["\n          <button\n            class=", "\n            onclick=", "\n            >\n            ", "\n          </button>"]);
+  var data = _taggedTemplateLiteral(["\n        <button\n          class=", "\n          onclick=", "\n          >\n          ", "\n        </button>"]);
 
   _templateObject8 = function _templateObject8() {
     return data;
@@ -2886,7 +2911,7 @@ function _templateObject8() {
 }
 
 function _templateObject7() {
-  var data = _taggedTemplateLiteral(["\n          <button\n            class=", "\n            onclick=", "\n            >\n            ", "\n          </button>"]);
+  var data = _taggedTemplateLiteral(["\n        <button\n          class=", "\n          onclick=", "\n          >\n          ", "\n        </button>"]);
 
   _templateObject7 = function _templateObject7() {
     return data;
@@ -3145,9 +3170,9 @@ function Editor(state, emit) {
     });
   }
 
-  function ElementPicker() {
-    var symbols = ['@', '.', '?'];
-    return [symbols.map(function (symbol) {
+  function SymbolPicker() {
+    var symbols = ['@', '.', '?', '_'];
+    return symbols.map(function (symbol) {
       var selectedClass = symbol === state.stampingRule ? 'selected' : '';
 
       var onclick = function onclick() {
@@ -3155,35 +3180,51 @@ function Editor(state, emit) {
       };
 
       return html(_templateObject7(), selectedClass, onclick, symbol);
-    }), state.elements.map(function (el) {
+    });
+  }
+
+  function GivenPicker() {
+    return state.elements.slice(1).map(function (el) {
       var selectedClass = el.name === state.stampingRule ? 'selected' : '';
 
       var onclick = function onclick() {
-        return emit('selectStampingRule', el.name);
+        return emit('selectStampingRule', el.name.toUpperCase());
       };
 
       return html(_templateObject8(), selectedClass, onclick, el.name);
-    })];
+    });
+  }
+
+  function VotePicker() {
+    return state.elements.slice(1).map(function (el) {
+      var selectedClass = el.name.toLowerCase() === state.stampingRule ? 'selected' : '';
+
+      var onclick = function onclick() {
+        return emit('selectStampingRule', el.name.toLowerCase());
+      };
+
+      return html(_templateObject9(), selectedClass, onclick, el.name.toLowerCase());
+    });
   }
 
   function Rule(_ref, i) {
     var when = _ref.when,
         then = _ref.then;
-    return html(_templateObject9(), when.map(function (row, y) {
-      return html(_templateObject10(), row.map(function (symbol, x) {
+    return html(_templateObject10(), when.map(function (row, y) {
+      return html(_templateObject11(), row.map(function (symbol, x) {
         var onclick = function onclick() {
           return emit('stampRule', 'when', i, x, y);
         };
 
-        return html(_templateObject11(), onclick, symbol);
+        return html(_templateObject12(), onclick, symbol);
       }));
     }), "=>", then.map(function (row, y) {
-      return html(_templateObject12(), row.map(function (symbol, x) {
+      return html(_templateObject13(), row.map(function (symbol, x) {
         var onclick = function onclick() {
           return emit('stampRule', 'then', i, x, y);
         };
 
-        return html(_templateObject13(), onclick, symbol);
+        return html(_templateObject14(), onclick, symbol);
       }));
     }));
   }
@@ -3191,9 +3232,9 @@ function Editor(state, emit) {
   var elementIndex = state.elements.findIndex(function (el) {
     return el.name === state.editingElement;
   });
-  return html(_templateObject14(), ElementList(), state.elements[elementIndex].rules.map(Rule), function () {
+  return html(_templateObject15(), ElementList(), state.elements[elementIndex].rules.map(Rule), function () {
     return emit('addRule');
-  }, ElementPicker());
+  }, SymbolPicker(), GivenPicker(), VotePicker());
 }
 
 var Canvas = /*#__PURE__*/function (_Component) {
@@ -3271,7 +3312,7 @@ var Canvas = /*#__PURE__*/function (_Component) {
     value: function createElement(state, emit) {
       var _this3 = this;
 
-      var canvas = html(_templateObject15(), this.size, this.size);
+      var canvas = html(_templateObject16(), this.size, this.size);
       var context = canvas.getContext('2d');
       context.font = "".concat(this.res, "px monospace");
       context.textAlign = 'left';
@@ -3340,7 +3381,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54842" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62481" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

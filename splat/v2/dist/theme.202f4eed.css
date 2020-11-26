@@ -14,7 +14,6 @@
   font-family: monospace;
   line-height: var(--res);
   font-size: var(--res);
-  text-transform: uppercase;
   list-style: none;
   position: relative;
 }
@@ -49,7 +48,7 @@ ul li {
   background: grey;
 }
 #app {
-  width: calc(var(--res) * 44);
+  width: calc(var(--res) * 46);
   height: calc(var(--res) * 32);
   margin: auto;
   display: flex;
@@ -61,7 +60,7 @@ ul li {
 @media (max-width: 140vh) {
   :root {
     --res: 2vw;
-    font-size: calc(100vw / 42);
+    font-size: calc(100vw / 46);
   }
 }
 #grid {
@@ -103,9 +102,11 @@ ul li {
   cursor: pointer;
 }
 #editor {
-  width: calc(var(--res) * 10);
+  width: calc(var(--res) * 12);
   padding: var(--res);
   background: lightgrey;
+  display: flex;
+  flex-direction: column;
 }
 #editor .element-list {
   width: 100%;
@@ -118,10 +119,10 @@ ul li {
 }
 #editor .rules {
   overflow-y: scroll;
-  height: 80%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  flex-grow: 1;
 }
 #editor .rule {
   display: flex;

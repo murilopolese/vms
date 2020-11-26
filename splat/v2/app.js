@@ -202,33 +202,45 @@ function Editor(state, emit) {
       `
     })
   }
-  function ElementPicker() {
-    let symbols = ['@', '.', '?']
-
-    return [
-      symbols.map((symbol) => {
-        let selectedClass = symbol === state.stampingRule ? 'selected' : ''
-        let onclick = () => emit('selectStampingRule', symbol)
-        return html`
-          <button
-            class=${selectedClass}
-            onclick=${onclick}
-            >
-            ${symbol}
-          </button>`
-      }),
-      state.elements.map((el) => {
-        let selectedClass = el.name === state.stampingRule ? 'selected' : ''
-        let onclick = () => emit('selectStampingRule', el.name)
-        return html`
-          <button
-            class=${selectedClass}
-            onclick=${onclick}
-            >
-            ${el.name}
-          </button>`
-      })
-    ]
+  function SymbolPicker() {
+    let symbols = ['@', '.', '?', '_']
+    return symbols.map((symbol) => {
+      let selectedClass = symbol === state.stampingRule ? 'selected' : ''
+      let onclick = () => emit('selectStampingRule', symbol)
+      return html`
+        <button
+          class=${selectedClass}
+          onclick=${onclick}
+          >
+          ${symbol}
+        </button>`
+    })
+  }
+  function GivenPicker() {
+    return state.elements.slice(1).map((el) => {
+      let selectedClass = el.name === state.stampingRule ? 'selected' : ''
+      let onclick = () => emit('selectStampingRule', el.name.toUpperCase())
+      return html`
+        <button
+          class=${selectedClass}
+          onclick=${onclick}
+          >
+          ${el.name}
+        </button>`
+    })
+  }
+  function VotePicker() {
+    return state.elements.slice(1).map((el) => {
+      let selectedClass = el.name.toLowerCase() === state.stampingRule ? 'selected' : ''
+      let onclick = () => emit('selectStampingRule', el.name.toLowerCase())
+      return html`
+        <button
+          class=${selectedClass}
+          onclick=${onclick}
+          >
+          ${el.name.toLowerCase()}
+        </button>`
+    })
   }
   function Rule({ when, then }, i) {
     return html`
@@ -276,7 +288,13 @@ function Editor(state, emit) {
         <button class="add-rule" onclick=${() => emit('addRule')}>+</button>
       </div>
       <div class="element-picker">
-        ${ElementPicker()}
+        ${SymbolPicker()}
+      </div>
+      <div class="element-picker">
+        ${GivenPicker()}
+      </div>
+      <div class="element-picker">
+        ${VotePicker()}
       </div>
     </div>
   `

@@ -22,14 +22,19 @@ function format_matrix(ruleArray) {
   return formatted
 }
 
+function hasLowerCase(str) {
+    return (/[a-z]/.test(str));
+}
+
 function Rule({ when = [[]], then = [[]] }) {
   this.when = format_matrix(when)
   this.then = format_matrix(then)
 
   this.match = function(grid, x, y) {
     let element = grid[y][x]
+    let votes = {}
     // console.log('will try to match rule', this.when)
-    let matching = true
+    let givenMatch = true
     for (let _y = 0; _y < 3; _y++) {
       for (let _x = 0; _x < 3; _x++) {
         let symbol = this.when[_y][_x]
@@ -37,33 +42,44 @@ function Rule({ when = [[]], then = [[]] }) {
         switch (symbol) {
           case '@':
             if (value.name !== element.name) {
-              matching = false
+              givenMatch = false
             }
             break
+          case null:
+            // Do nothing
           case '.':
             // it could be anything here
             break
           case '?':
             if (value.name === empty.name) {
-              matching = false
+              givenMatch = false
             }
-            break;
+            break
           case '_':
             if (value.name !== empty.name) {
-              matching = false
+              givenMatch = false
             }
-            break;
-          case null:
-            // Do nothing
             break
           default:
-            if (value.name[0] !== symbol) {
-              matching = false
+            // Check if it's a vote or a given
+            if (hasLowerCase(symbol)) {
+              if (votes[symbol] === undefined) {
+                votes[symbol] = 0
+              }
+              if (value.name[0] === symbol.toUpperCase()) {
+                votes[symbol] += 1
+              }
+            } else {
+              if (value.name[0] !== symbol) {
+                givenMatch = false
+              }
             }
         }
       }
     }
-    return matching
+    let voteCounts = Object.values(votes)
+    voteMatch = voteCounts.length == 0 || voteCounts.indexOf(0) === -1
+    return givenMatch && voteMatch
   }
 
   this.apply = function(grid, x, y) {
@@ -85,7 +101,7 @@ function Rule({ when = [[]], then = [[]] }) {
               grid[y+_y-1][x+_x-1] = empty
             break;
           default:
-            grid[y+_y-1][x+_x-1] = elements[symbol]
+            grid[y+_y-1][x+_x-1] = elements[symbol.toUpperCase()]
         }
       }
     }
@@ -99,7 +115,6 @@ function Element({ name = '_', rules = [], color = 'white' }) {
   this.color = color
 }
 
-let empty = new Element({ name: '_'})
 function clearGrid(grid) {
   if (!grid) grid = []
   for (let y = 0; y < GRID_HEIGHT; y++) {
@@ -111,10 +126,10 @@ function clearGrid(grid) {
   return grid
 }
 
+let empty = new Element({ name: '_'})
 let elements = {
   '_': empty
 }
-
 for (let i = 65; i < 91; i++) {
   let c = String.fromCharCode(i)
   elements[c] = new Element({ name: `${c}` })
