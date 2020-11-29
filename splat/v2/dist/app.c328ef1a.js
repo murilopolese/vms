@@ -3254,7 +3254,8 @@ var Canvas = /*#__PURE__*/function (_Component) {
     _this.cursor = {
       x: 0,
       y: 0
-    };
+    }; // this.dragging =
+
     return _this;
   }
 
@@ -3308,6 +3309,13 @@ var Canvas = /*#__PURE__*/function (_Component) {
       return false; // never/don't upate DOM
     }
   }, {
+    key: "stamp",
+    value: function stamp(emit) {
+      var hoveringX = parseInt(map(this.cursor.x, 0, this.size, 0, this.n));
+      var hoveringY = parseInt(map(this.cursor.y, 0, this.size, 0, this.n));
+      emit('stampGrid', hoveringX, hoveringY);
+    }
+  }, {
     key: "createElement",
     value: function createElement(state, emit) {
       var _this3 = this;
@@ -3330,11 +3338,13 @@ var Canvas = /*#__PURE__*/function (_Component) {
           x: relativeX,
           y: relativeY
         };
+
+        if (e.buttons == 1) {
+          _this3.stamp(emit);
+        }
       });
       canvas.addEventListener('mousedown', function (e) {
-        var hoveringX = parseInt(map(_this3.cursor.x, 0, _this3.size, 0, _this3.n));
-        var hoveringY = parseInt(map(_this3.cursor.y, 0, _this3.size, 0, _this3.n));
-        emit('stampGrid', hoveringX, hoveringY);
+        _this3.stamp(emit);
       });
 
       for (var y = 0; y < this.n; y++) {
@@ -3381,7 +3391,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62481" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53131" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

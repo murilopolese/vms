@@ -307,6 +307,7 @@ class Canvas extends Component {
     this.size = 800
     this.res = this.size/this.n
     this.cursor = { x: 0, y: 0 }
+    // this.dragging =
   }
 
   update(state) {
@@ -366,6 +367,16 @@ class Canvas extends Component {
     return false // never/don't upate DOM
   }
 
+  stamp(emit) {
+    let hoveringX = parseInt(
+      map(this.cursor.x, 0, this.size, 0, this.n)
+    )
+    let hoveringY = parseInt(
+      map(this.cursor.y, 0, this.size, 0, this.n)
+    )
+    emit('stampGrid', hoveringX, hoveringY)
+  }
+
   createElement(state, emit) {
     let canvas = html`<canvas width=${this.size} height=${this.size}></canvas>`
     let context = canvas.getContext('2d')
@@ -384,15 +395,14 @@ class Canvas extends Component {
       let relativeX = map(layerX, 0, canvasBounds.width, 0, canvasOriginalWidth)
       let relativeY = map(layerY, 0, canvasBounds.height, 0, canvasOriginalHeight)
       this.cursor = { x: relativeX, y: relativeY }
+
+      if (e.buttons == 1) {
+        this.stamp(emit)
+      }
     })
+
     canvas.addEventListener('mousedown', (e) => {
-      let hoveringX = parseInt(
-        map(this.cursor.x, 0, this.size, 0, this.n)
-      )
-      let hoveringY = parseInt(
-        map(this.cursor.y, 0, this.size, 0, this.n)
-      )
-      emit('stampGrid', hoveringX, hoveringY)
+      this.stamp(emit)
     })
 
     for (let y = 0; y < this.n; y++) {
