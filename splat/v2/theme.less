@@ -1,5 +1,5 @@
 :root {
-  --res: 2.9vh;
+  --res: 3vh;
   font-size: calc(100vh / 40);
 }
 
@@ -138,17 +138,23 @@ ul li {
     justify-content: center;
     margin-top: calc(var(--res) * 0.5);
     margin-bottom: calc(var(--res) * 0.5);
-  }
-  .rule .when,
-  .rule .then {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: column;
-    & > div {
+    .when, .then {
       display: flex;
       flex-wrap: wrap;
+      flex-direction: column;
+      & > div {
+        display: flex;
+        flex-wrap: wrap;
+      }
+    }
+    .controls {
+      margin-right: 0.5em;
+      .rotate {
+        transform: rotate(180deg)
+      }
     }
   }
+
 
   .element-picker {
     display: flex;

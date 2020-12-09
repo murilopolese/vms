@@ -1,5 +1,5 @@
 :root {
-  --res: 2.9vh;
+  --res: 3vh;
   font-size: calc(100vh / 40);
 }
 * {
@@ -141,6 +141,12 @@ ul li {
 #editor .rule .then > div {
   display: flex;
   flex-wrap: wrap;
+}
+#editor .rule .controls {
+  margin-right: 0.5em;
+}
+#editor .rule .controls .rotate {
+  transform: rotate(180deg);
 }
 #editor .element-picker {
   display: flex;

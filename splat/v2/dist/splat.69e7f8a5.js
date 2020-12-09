@@ -148,19 +148,56 @@ function Rule(_ref) {
   var _ref$when = _ref.when,
       when = _ref$when === void 0 ? [[]] : _ref$when,
       _ref$then = _ref.then,
-      then = _ref$then === void 0 ? [[]] : _ref$then;
+      then = _ref$then === void 0 ? [[]] : _ref$then,
+      _ref$symmetry = _ref.symmetry,
+      symmetry = _ref$symmetry === void 0 ? 0 : _ref$symmetry;
   this.when = format_matrix(when);
   this.then = format_matrix(then);
+  this.symmetry = symmetry;
+  this.chosenSymetry = 0;
+  this.when[1][1] = '@'; // https://disigns.wordpress.com/2017/12/22/rotating-a-2d-array-by-90-degrees-java/
+
+  this.rotateArray = function (a, n) {
+    for (var i = 0; i < n - 1; i++) {
+      for (var j = i; j < n - 1 - i; j++) {
+        var temp = a[i][j];
+        a[i][j] = a[n - 1 - j][i];
+        a[n - 1 - j][i] = a[n - 1 - i][n - 1 - j];
+        a[n - 1 - i][n - 1 - j] = a[j][n - 1 - i];
+        a[j][n - 1 - i] = temp;
+      }
+    }
+
+    return a;
+  };
+
+  this.cloneArray = function (a) {
+    var b = format_matrix(a);
+
+    for (var i = 0; i < 3; i++) {
+      for (var j = 0; j < 3; j++) {
+        a[i][j] = a[i][j];
+      }
+    }
+
+    return b;
+  };
 
   this.match = function (grid, x, y) {
     var element = grid[y][x];
     var votes = {}; // console.log('will try to match rule', this.when)
 
     var givenMatch = true;
+    this.chosenSymetry = parseInt(Math.random() * (this.symmetry + 1));
+    var when = this.cloneArray(this.when);
+
+    for (var i = 0; i < this.chosenSymetry; i++) {
+      when = this.rotateArray(when, 3);
+    }
 
     for (var _y = 0; _y < 3; _y++) {
       for (var _x = 0; _x < 3; _x++) {
-        var symbol = this.when[_y][_x];
+        var symbol = when[_y][_x];
         var value = grid[y + _y - 1][x + _x - 1];
 
         switch (symbol) {
@@ -169,12 +206,6 @@ function Rule(_ref) {
               givenMatch = false;
             }
 
-            break;
-
-          case null: // Do nothing
-
-          case '.':
-            // it could be anything here
             break;
 
           case '?':
@@ -189,6 +220,12 @@ function Rule(_ref) {
               givenMatch = false;
             }
 
+            break;
+
+          case null: // Do nothing
+
+          case '.':
+            // it could be anything here
             break;
 
           default:
@@ -219,9 +256,15 @@ function Rule(_ref) {
   this.apply = function (grid, x, y) {
     var element = grid[y][x]; // console.log('applying rule', this.then)
 
+    var then = this.cloneArray(this.then);
+
+    for (var i = 0; i < this.chosenSymetry; i++) {
+      then = this.rotateArray(then, 3);
+    }
+
     for (var _y = 0; _y < 3; _y++) {
       for (var _x = 0; _x < 3; _x++) {
-        var symbol = this.then[_y][_x];
+        var symbol = then[_y][_x];
 
         switch (symbol) {
           case '@':
@@ -252,12 +295,9 @@ function Element(_ref2) {
   var _ref2$name = _ref2.name,
       name = _ref2$name === void 0 ? '_' : _ref2$name,
       _ref2$rules = _ref2.rules,
-      rules = _ref2$rules === void 0 ? [] : _ref2$rules,
-      _ref2$color = _ref2.color,
-      color = _ref2$color === void 0 ? 'white' : _ref2$color;
+      rules = _ref2$rules === void 0 ? [] : _ref2$rules;
   this.name = name;
   this.rules = rules;
-  this.color = color;
 }
 
 function clearGrid(grid) {
@@ -328,7 +368,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53131" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56646" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

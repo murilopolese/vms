@@ -26,29 +26,57 @@ function hasLowerCase(str) {
     return (/[a-z]/.test(str));
 }
 
-function Rule({ when = [[]], then = [[]] }) {
+function Rule({ when = [[]], then = [[]], symmetry = 0 }) {
   this.when = format_matrix(when)
   this.then = format_matrix(then)
+  this.symmetry = symmetry
+  this.chosenSymetry = 0
+  this.when[1][1] = '@'
+
+  // https://disigns.wordpress.com/2017/12/22/rotating-a-2d-array-by-90-degrees-java/
+  this.rotateArray = function(a, n){
+    for (let i = 0; i < n-1; i++) {
+      for (let j = i; j < n-1-i; j++) {
+        let temp = a[i][j]
+        a[i][j] = a[n-1-j][i]
+        a[n-1-j][i] = a[n-1-i][n-1-j]
+        a[n-1-i][n-1-j] = a[j][n-1-i]
+        a[j][n-1-i] = temp
+      }
+    }
+    return a
+  }
+
+  this.cloneArray = function(a) {
+    let b = format_matrix(a)
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        a[i][j] = a[i][j]
+      }
+    }
+    return b
+  }
 
   this.match = function(grid, x, y) {
     let element = grid[y][x]
     let votes = {}
     // console.log('will try to match rule', this.when)
     let givenMatch = true
+    this.chosenSymetry = parseInt(Math.random()*(this.symmetry+1))
+    let when = this.cloneArray(this.when)
+    for (let i = 0; i < this.chosenSymetry; i++) {
+      when = this.rotateArray(when, 3)
+    }
+
     for (let _y = 0; _y < 3; _y++) {
       for (let _x = 0; _x < 3; _x++) {
-        let symbol = this.when[_y][_x]
+        let symbol = when[_y][_x]
         let value = grid[y+_y-1][x+_x-1]
         switch (symbol) {
           case '@':
             if (value.name !== element.name) {
               givenMatch = false
             }
-            break
-          case null:
-            // Do nothing
-          case '.':
-            // it could be anything here
             break
           case '?':
             if (value.name === empty.name) {
@@ -59,6 +87,11 @@ function Rule({ when = [[]], then = [[]] }) {
             if (value.name !== empty.name) {
               givenMatch = false
             }
+            break
+          case null:
+            // Do nothing
+          case '.':
+            // it could be anything here
             break
           default:
             // Check if it's a vote or a given
@@ -85,9 +118,13 @@ function Rule({ when = [[]], then = [[]] }) {
   this.apply = function(grid, x, y) {
     let element = grid[y][x]
     // console.log('applying rule', this.then)
+    let then = this.cloneArray(this.then)
+    for (let i = 0; i < this.chosenSymetry; i++) {
+      then = this.rotateArray(then, 3)
+    }
     for (let _y = 0; _y < 3; _y++) {
       for (let _x = 0; _x < 3; _x++) {
-        let symbol = this.then[_y][_x]
+        let symbol = then[_y][_x]
         switch (symbol) {
           case '@':
             grid[y+_y-1][x+_x-1] = elements[element.name]
@@ -109,10 +146,9 @@ function Rule({ when = [[]], then = [[]] }) {
   }
 }
 
-function Element({ name = '_', rules = [], color = 'white' }) {
+function Element({ name = '_', rules = [] }) {
   this.name = name
   this.rules = rules
-  this.color = color
 }
 
 function clearGrid(grid) {

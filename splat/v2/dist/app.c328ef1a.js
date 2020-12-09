@@ -2313,7 +2313,230 @@ module.exports = require('./dom')(document)
 },{"./dom":"node_modules/nanohtml/lib/dom.js"}],"node_modules/choo/html/index.js":[function(require,module,exports) {
 module.exports = require('nanohtml')
 
-},{"nanohtml":"node_modules/nanohtml/lib/browser.js"}],"node_modules/parcel-bundler/src/builtins/_empty.js":[function(require,module,exports) {
+},{"nanohtml":"node_modules/nanohtml/lib/browser.js"}],"splat.js":[function(require,module,exports) {
+function format_matrix(ruleArray) {
+  var formatted = [['.', '.', '.'], ['.', '.', '.'], ['.', '.', '.']];
+  var offsetX = 0;
+  var offsetY = 0;
+
+  if (ruleArray.length < 3) {
+    offsetY = 1;
+  }
+
+  if (ruleArray[0].length < 3) {
+    offsetX = 1;
+  }
+
+  for (var y = 0; y < ruleArray.length; y++) {
+    for (var x = 0; x < ruleArray[y].length; x++) {
+      formatted[y + offsetY][x + offsetX] = ruleArray[y][x];
+    }
+  }
+
+  return formatted;
+}
+
+function hasLowerCase(str) {
+  return /[a-z]/.test(str);
+}
+
+function Rule(_ref) {
+  var _ref$when = _ref.when,
+      when = _ref$when === void 0 ? [[]] : _ref$when,
+      _ref$then = _ref.then,
+      then = _ref$then === void 0 ? [[]] : _ref$then,
+      _ref$symmetry = _ref.symmetry,
+      symmetry = _ref$symmetry === void 0 ? 0 : _ref$symmetry;
+  this.when = format_matrix(when);
+  this.then = format_matrix(then);
+  this.symmetry = symmetry;
+  this.chosenSymetry = 0;
+  this.when[1][1] = '@'; // https://disigns.wordpress.com/2017/12/22/rotating-a-2d-array-by-90-degrees-java/
+
+  this.rotateArray = function (a, n) {
+    for (var i = 0; i < n - 1; i++) {
+      for (var j = i; j < n - 1 - i; j++) {
+        var temp = a[i][j];
+        a[i][j] = a[n - 1 - j][i];
+        a[n - 1 - j][i] = a[n - 1 - i][n - 1 - j];
+        a[n - 1 - i][n - 1 - j] = a[j][n - 1 - i];
+        a[j][n - 1 - i] = temp;
+      }
+    }
+
+    return a;
+  };
+
+  this.cloneArray = function (a) {
+    var b = format_matrix(a);
+
+    for (var i = 0; i < 3; i++) {
+      for (var j = 0; j < 3; j++) {
+        a[i][j] = a[i][j];
+      }
+    }
+
+    return b;
+  };
+
+  this.match = function (grid, x, y) {
+    var element = grid[y][x];
+    var votes = {}; // console.log('will try to match rule', this.when)
+
+    var givenMatch = true;
+    this.chosenSymetry = parseInt(Math.random() * (this.symmetry + 1));
+    var when = this.cloneArray(this.when);
+
+    for (var i = 0; i < this.chosenSymetry; i++) {
+      when = this.rotateArray(when, 3);
+    }
+
+    for (var _y = 0; _y < 3; _y++) {
+      for (var _x = 0; _x < 3; _x++) {
+        var symbol = when[_y][_x];
+        var value = grid[y + _y - 1][x + _x - 1];
+
+        switch (symbol) {
+          case '@':
+            if (value.name !== element.name) {
+              givenMatch = false;
+            }
+
+            break;
+
+          case '?':
+            if (value.name === empty.name) {
+              givenMatch = false;
+            }
+
+            break;
+
+          case '_':
+            if (value.name !== empty.name) {
+              givenMatch = false;
+            }
+
+            break;
+
+          case null: // Do nothing
+
+          case '.':
+            // it could be anything here
+            break;
+
+          default:
+            // Check if it's a vote or a given
+            if (hasLowerCase(symbol)) {
+              if (votes[symbol] === undefined) {
+                votes[symbol] = 0;
+              }
+
+              if (value.name[0] === symbol.toUpperCase()) {
+                votes[symbol] += 1;
+              }
+            } else {
+              if (value.name[0] !== symbol) {
+                givenMatch = false;
+              }
+            }
+
+        }
+      }
+    }
+
+    var voteCounts = Object.values(votes);
+    voteMatch = voteCounts.length == 0 || voteCounts.indexOf(0) === -1;
+    return givenMatch && voteMatch;
+  };
+
+  this.apply = function (grid, x, y) {
+    var element = grid[y][x]; // console.log('applying rule', this.then)
+
+    var then = this.cloneArray(this.then);
+
+    for (var i = 0; i < this.chosenSymetry; i++) {
+      then = this.rotateArray(then, 3);
+    }
+
+    for (var _y = 0; _y < 3; _y++) {
+      for (var _x = 0; _x < 3; _x++) {
+        var symbol = then[_y][_x];
+
+        switch (symbol) {
+          case '@':
+            grid[y + _y - 1][x + _x - 1] = elements[element.name];
+            break;
+
+          case '.':
+          case '?':
+          case null:
+            // Do nothing
+            break;
+
+          case '_':
+            grid[y + _y - 1][x + _x - 1] = empty;
+            break;
+
+          default:
+            grid[y + _y - 1][x + _x - 1] = elements[symbol.toUpperCase()];
+        }
+      }
+    }
+
+    return grid;
+  };
+}
+
+function Element(_ref2) {
+  var _ref2$name = _ref2.name,
+      name = _ref2$name === void 0 ? '_' : _ref2$name,
+      _ref2$rules = _ref2.rules,
+      rules = _ref2$rules === void 0 ? [] : _ref2$rules;
+  this.name = name;
+  this.rules = rules;
+}
+
+function clearGrid(grid) {
+  if (!grid) grid = [];
+
+  for (var y = 0; y < GRID_HEIGHT; y++) {
+    grid[y] = [];
+
+    for (var x = 0; x < GRID_WIDTH; x++) {
+      grid[y].push(empty);
+    }
+  }
+
+  return grid;
+}
+
+var empty = new Element({
+  name: '_'
+});
+var elements = {
+  '_': empty
+};
+
+for (var i = 65; i < 91; i++) {
+  var c = String.fromCharCode(i);
+  elements[c] = new Element({
+    name: "".concat(c)
+  });
+}
+
+var GRID_WIDTH = 30;
+var GRID_HEIGHT = 30;
+var grid = clearGrid();
+module.exports = {
+  GRID_WIDTH: GRID_WIDTH,
+  GRID_HEIGHT: GRID_HEIGHT,
+  Rule: Rule,
+  Element: Element,
+  grid: grid,
+  elements: elements,
+  clearGrid: clearGrid
+};
+},{}],"node_modules/parcel-bundler/src/builtins/_empty.js":[function(require,module,exports) {
 
 },{}],"node_modules/global/document.js":[function(require,module,exports) {
 var global = arguments[3];
@@ -2614,201 +2837,23 @@ Nanocomponent.prototype.update = function () {
 },{"global/document":"node_modules/global/document.js","nanotiming":"node_modules/nanotiming/browser.js","nanomorph":"node_modules/nanomorph/index.js","on-load":"node_modules/on-load/index.js","assert":"node_modules/nanoassert/index.js"}],"node_modules/choo/component/index.js":[function(require,module,exports) {
 module.exports = require('nanocomponent')
 
-},{"nanocomponent":"node_modules/nanocomponent/index.js"}],"splat.js":[function(require,module,exports) {
-function format_matrix(ruleArray) {
-  var formatted = [['.', '.', '.'], ['.', '.', '.'], ['.', '.', '.']];
-  var offsetX = 0;
-  var offsetY = 0;
-
-  if (ruleArray.length < 3) {
-    offsetY = 1;
-  }
-
-  if (ruleArray[0].length < 3) {
-    offsetX = 1;
-  }
-
-  for (var y = 0; y < ruleArray.length; y++) {
-    for (var x = 0; x < ruleArray[y].length; x++) {
-      formatted[y + offsetY][x + offsetX] = ruleArray[y][x];
-    }
-  }
-
-  return formatted;
-}
-
-function hasLowerCase(str) {
-  return /[a-z]/.test(str);
-}
-
-function Rule(_ref) {
-  var _ref$when = _ref.when,
-      when = _ref$when === void 0 ? [[]] : _ref$when,
-      _ref$then = _ref.then,
-      then = _ref$then === void 0 ? [[]] : _ref$then;
-  this.when = format_matrix(when);
-  this.then = format_matrix(then);
-
-  this.match = function (grid, x, y) {
-    var element = grid[y][x];
-    var votes = {}; // console.log('will try to match rule', this.when)
-
-    var givenMatch = true;
-
-    for (var _y = 0; _y < 3; _y++) {
-      for (var _x = 0; _x < 3; _x++) {
-        var symbol = this.when[_y][_x];
-        var value = grid[y + _y - 1][x + _x - 1];
-
-        switch (symbol) {
-          case '@':
-            if (value.name !== element.name) {
-              givenMatch = false;
-            }
-
-            break;
-
-          case null: // Do nothing
-
-          case '.':
-            // it could be anything here
-            break;
-
-          case '?':
-            if (value.name === empty.name) {
-              givenMatch = false;
-            }
-
-            break;
-
-          case '_':
-            if (value.name !== empty.name) {
-              givenMatch = false;
-            }
-
-            break;
-
-          default:
-            // Check if it's a vote or a given
-            if (hasLowerCase(symbol)) {
-              if (votes[symbol] === undefined) {
-                votes[symbol] = 0;
-              }
-
-              if (value.name[0] === symbol.toUpperCase()) {
-                votes[symbol] += 1;
-              }
-            } else {
-              if (value.name[0] !== symbol) {
-                givenMatch = false;
-              }
-            }
-
-        }
-      }
-    }
-
-    var voteCounts = Object.values(votes);
-    voteMatch = voteCounts.length == 0 || voteCounts.indexOf(0) === -1;
-    return givenMatch && voteMatch;
-  };
-
-  this.apply = function (grid, x, y) {
-    var element = grid[y][x]; // console.log('applying rule', this.then)
-
-    for (var _y = 0; _y < 3; _y++) {
-      for (var _x = 0; _x < 3; _x++) {
-        var symbol = this.then[_y][_x];
-
-        switch (symbol) {
-          case '@':
-            grid[y + _y - 1][x + _x - 1] = elements[element.name];
-            break;
-
-          case '.':
-          case '?':
-          case null:
-            // Do nothing
-            break;
-
-          case '_':
-            grid[y + _y - 1][x + _x - 1] = empty;
-            break;
-
-          default:
-            grid[y + _y - 1][x + _x - 1] = elements[symbol.toUpperCase()];
-        }
-      }
-    }
-
-    return grid;
-  };
-}
-
-function Element(_ref2) {
-  var _ref2$name = _ref2.name,
-      name = _ref2$name === void 0 ? '_' : _ref2$name,
-      _ref2$rules = _ref2.rules,
-      rules = _ref2$rules === void 0 ? [] : _ref2$rules,
-      _ref2$color = _ref2.color,
-      color = _ref2$color === void 0 ? 'white' : _ref2$color;
-  this.name = name;
-  this.rules = rules;
-  this.color = color;
-}
-
-function clearGrid(grid) {
-  if (!grid) grid = [];
-
-  for (var y = 0; y < GRID_HEIGHT; y++) {
-    grid[y] = [];
-
-    for (var x = 0; x < GRID_WIDTH; x++) {
-      grid[y].push(empty);
-    }
-  }
-
-  return grid;
-}
-
-var empty = new Element({
-  name: '_'
-});
-var elements = {
-  '_': empty
-};
-
-for (var i = 65; i < 91; i++) {
-  var c = String.fromCharCode(i);
-  elements[c] = new Element({
-    name: "".concat(c)
-  });
-}
-
-var GRID_WIDTH = 30;
-var GRID_HEIGHT = 30;
-var grid = clearGrid();
-module.exports = {
-  GRID_WIDTH: GRID_WIDTH,
-  GRID_HEIGHT: GRID_HEIGHT,
-  Rule: Rule,
-  Element: Element,
-  grid: grid,
-  elements: elements,
-  clearGrid: clearGrid
-};
-},{}],"app.js":[function(require,module,exports) {
+},{"nanocomponent":"node_modules/nanocomponent/index.js"}],"components/colors.js":[function(require,module,exports) {
+module.exports = ['#FFFFFF', '#000000', '#222034', '#45283c', '#663931', '#8f563b', '#df7126', '#d9a066', '#eec39a', '#fbf236', '#99e550', '#6abe30', '#37946e', '#4b692f', '#524b24', '#323c39', '#3f3f74', '#306082', '#5b6ee1', // '#639bff', '#5fcde4', '#cbdbfc', '#ffffff', '#9badb7', '#847e87',
+'#696a6a', '#595652', '#76428a', '#ac3232', '#d95763', '#d77bba', '#8f974a', '#8a6f30'];
+},{}],"components/canvas.js":[function(require,module,exports) {
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
-function _templateObject16() {
+function _templateObject() {
   var data = _taggedTemplateLiteral(["<canvas width=", " height=", "></canvas>"]);
 
-  _templateObject16 = function _templateObject16() {
+  _templateObject = function _templateObject() {
     return data;
   };
 
   return data;
 }
+
+function _taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -2830,411 +2875,14 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
-function _templateObject15() {
-  var data = _taggedTemplateLiteral(["\n    <div id=\"editor\">\n      <div class=\"element-list\">\n        ", "\n      </div>\n      <div class=\"rules\">\n        ", "\n        <button class=\"add-rule\" onclick=", ">+</button>\n      </div>\n      <div class=\"element-picker\">\n        ", "\n      </div>\n      <div class=\"element-picker\">\n        ", "\n      </div>\n      <div class=\"element-picker\">\n        ", "\n      </div>\n    </div>\n  "]);
-
-  _templateObject15 = function _templateObject15() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject14() {
-  var data = _taggedTemplateLiteral(["\n                    <button onclick=", ">", "</button>\n                  "]);
-
-  _templateObject14 = function _templateObject14() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject13() {
-  var data = _taggedTemplateLiteral(["\n              <div>\n                ", "\n              </div>\n            "]);
-
-  _templateObject13 = function _templateObject13() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject12() {
-  var data = _taggedTemplateLiteral(["\n                    <button onclick=", ">", "</button>\n                  "]);
-
-  _templateObject12 = function _templateObject12() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject11() {
-  var data = _taggedTemplateLiteral(["\n              <div>\n                ", "\n              </div>\n            "]);
-
-  _templateObject11 = function _templateObject11() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject10() {
-  var data = _taggedTemplateLiteral(["\n      <div class=\"rule\">\n        <div class=\"when\">\n          ", "\n        </div>\n        <div> ", " </div>\n        <div class=\"then\">\n          ", "\n        </div>\n      </div>\n    "]);
-
-  _templateObject10 = function _templateObject10() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject9() {
-  var data = _taggedTemplateLiteral(["\n        <button\n          class=", "\n          onclick=", "\n          >\n          ", "\n        </button>"]);
-
-  _templateObject9 = function _templateObject9() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject8() {
-  var data = _taggedTemplateLiteral(["\n        <button\n          class=", "\n          onclick=", "\n          >\n          ", "\n        </button>"]);
-
-  _templateObject8 = function _templateObject8() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject7() {
-  var data = _taggedTemplateLiteral(["\n        <button\n          class=", "\n          onclick=", "\n          >\n          ", "\n        </button>"]);
-
-  _templateObject7 = function _templateObject7() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject6() {
-  var data = _taggedTemplateLiteral(["\n        <button\n          class=", "\n          onclick=", "\n          >\n          ", "\n        </button>\n      "]);
-
-  _templateObject6 = function _templateObject6() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject5() {
-  var data = _taggedTemplateLiteral(["\n  <div id=\"grid\">\n    <div class=\"element-picker\">\n      ", "\n      ", "\n    </div>\n    <div class=\"grid\">\n      ", "\n    </div>\n  </div>\n  "]);
-
-  _templateObject5 = function _templateObject5() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject4() {
-  var data = _taggedTemplateLiteral(["\n          <button\n            style=\"background: ", "\"\n            onclick=", "\n            >\n          ", "\n          </button>\n        "]);
-
-  _templateObject4 = function _templateObject4() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject3() {
-  var data = _taggedTemplateLiteral(["\n      <button onclick=", ">", "</button>\n      <button onclick=", ">", "</button>\n      <button onclick=", ">", "</button>\n    "]);
-
-  _templateObject3 = function _templateObject3() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject2() {
-  var data = _taggedTemplateLiteral(["\n        <button\n          style=\"background: ", "\"\n          class=", "\n          onclick=", "\n          >\n          ", "\n        </button>\n      "]);
-
-  _templateObject2 = function _templateObject2() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject() {
-  var data = _taggedTemplateLiteral(["\n    <div id=\"app\">\n      ", "\n      ", "\n    </div>\n  "]);
-
-  _templateObject = function _templateObject() {
-    return data;
-  };
-
-  return data;
-}
-
-function _taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
-
-var choo = require('choo');
-
 var html = require('choo/html');
 
 var Component = require('choo/component');
 
-var _require = require('./splat.js'),
-    Rule = _require.Rule,
-    Element = _require.Element,
-    grid = _require.grid,
-    elements = _require.elements,
-    clearGrid = _require.clearGrid;
+var colors = require('./colors.js');
 
-var colors = ['#FFFFFF', '#000000', '#222034', '#45283c', '#663931', '#8f563b', '#df7126', '#d9a066', '#eec39a', '#fbf236', '#99e550', '#6abe30', '#37946e', '#4b692f', '#524b24', '#323c39', '#3f3f74', '#306082', '#5b6ee1', // '#639bff', '#5fcde4', '#cbdbfc', '#ffffff', '#9badb7', '#847e87',
-'#696a6a', '#595652', '#76428a', '#ac3232', '#d95763', '#d77bba', '#8f974a', '#8a6f30'];
-var app = choo();
-app.use(store);
-app.route('/', Layout);
-app.mount('#app');
-
-function store(state, emitter) {
-  state.elementsDict = elements;
-  state.elements = Object.values(elements);
-  state.grid = grid.map(function (r) {
-    return r.slice();
-  });
-  state.grid[5][5] = elements['X'];
-  state.editingElement = 'A';
-  state.stampingGrid = 'X';
-  state.stampingRule = '@';
-  state.interval = 0;
-  state.playing = false;
-  console.log('initialState', state);
-  emitter.on('selectEditingElement', function (symbol) {
-    console.log('select stamping element');
-    state.editingElement = symbol;
-    emitter.emit('render');
-  });
-  emitter.on('selectStampingGrid', function (symbol) {
-    console.log('select stamping grid');
-    state.stampingGrid = symbol;
-    emitter.emit('render');
-  });
-  emitter.on('selectStampingRule', function (symbol) {
-    console.log('select stamping rule');
-    state.stampingRule = symbol;
-    emitter.emit('render');
-  });
-  emitter.on('addRule', function () {
-    console.log('new rule');
-    var index = state.elements.findIndex(function (e) {
-      return e.name === state.editingElement;
-    });
-    state.elements[index].rules.push(new Rule({}));
-    emitter.emit('render');
-  });
-  emitter.on('stampGrid', function (x, y) {
-    console.log('stamp grid', x, y);
-    var element = state.elements.find(function (el) {
-      return el.name === state.stampingGrid;
-    });
-    state.grid[y][x] = element;
-    emitter.emit('render');
-  });
-  emitter.on('stampRule', function (type, i, x, y) {
-    console.log('stamp rule', type, i, x, y);
-    var index = state.elements.findIndex(function (e) {
-      return e.name === state.editingElement;
-    });
-    state.elements[index].rules[i][type][y][x] = state.stampingRule;
-    emitter.emit('render');
-  });
-  emitter.on('applyRules', function () {
-    for (var i = 0; i < 100; i++) {
-      var x = 1 + parseInt(Math.random() * 28);
-      var y = 1 + parseInt(Math.random() * 28);
-      var element = state.grid[y][x];
-
-      for (var j = 0; j < element.rules.length; j++) {
-        var rule = element.rules[j];
-        var matched = rule.match(state.grid, x, y);
-
-        if (matched) {
-          state.grid = rule.apply(state.grid, x, y);
-          break;
-        }
-      }
-    }
-  });
-  emitter.on('resetGrid', function () {
-    console.log('reset grid');
-    state.grid = state.grid = grid.map(function (r) {
-      return r.slice();
-    });
-  });
-  emitter.on('play', function () {
-    console.log('play');
-    state.playing = true;
-  });
-  emitter.on('stop', function () {
-    console.log('stop');
-    state.playing = false;
-  });
-  state.interval = setInterval(function () {
-    if (state.playing) {
-      emitter.emit('applyRules');
-    }
-
-    state.cache(Canvas, 'canvas').render(state, emitter.emit);
-  }, 50);
-}
-
-function Layout(state, emit) {
-  return html(_templateObject(), Grid(state, emit), Editor(state, emit));
-}
-
-function Grid(state, emit) {
-  function ElementPicker() {
-    return state.elements.map(function (el, i) {
-      var selectedClass = el.name === state.stampingGrid ? 'selected' : '';
-
-      var onclick = function onclick() {
-        return emit('selectStampingGrid', el.name);
-      };
-
-      return html(_templateObject2(), colors[i % colors.length], selectedClass, onclick, el.name);
-    });
-  }
-
-  function GameControls() {
-    return html(_templateObject3(), function () {
-      return emit('play');
-    }, ">", function () {
-      return emit('stop');
-    }, "||", function () {
-      return emit('resetGrid');
-    }, "<");
-  }
-
-  function ButtonStage() {
-    var buttons = [];
-
-    var _loop = function _loop(y) {
-      var _loop2 = function _loop2(x) {
-        var el = state.grid[y][x];
-        var i = state.elements.findIndex(function (e) {
-          return e.name === el.name;
-        });
-
-        var onclick = function onclick() {
-          return emit('stampGrid', x, y);
-        };
-
-        buttons.push(html(_templateObject4(), colors[i % colors.length], onclick, el.name));
-      };
-
-      for (var x = 0; x < 30; x++) {
-        _loop2(x);
-      }
-    };
-
-    for (var y = 0; y < 30; y++) {
-      _loop(y);
-    }
-
-    return buttons;
-  }
-
-  function CanvasStage() {
-    return state.cache(Canvas, 'canvas').render(state, emit);
-  }
-
-  return html(_templateObject5(), GameControls(), ElementPicker(), CanvasStage());
-}
-
-function Editor(state, emit) {
-  function ElementList() {
-    return state.elements.map(function (el) {
-      var selectedClass = el.name === state.editingElement ? 'selected' : '';
-
-      var onclick = function onclick() {
-        return emit('selectEditingElement', el.name);
-      };
-
-      return html(_templateObject6(), selectedClass, onclick, el.name);
-    });
-  }
-
-  function SymbolPicker() {
-    var symbols = ['@', '.', '?', '_'];
-    return symbols.map(function (symbol) {
-      var selectedClass = symbol === state.stampingRule ? 'selected' : '';
-
-      var onclick = function onclick() {
-        return emit('selectStampingRule', symbol);
-      };
-
-      return html(_templateObject7(), selectedClass, onclick, symbol);
-    });
-  }
-
-  function GivenPicker() {
-    return state.elements.slice(1).map(function (el) {
-      var selectedClass = el.name === state.stampingRule ? 'selected' : '';
-
-      var onclick = function onclick() {
-        return emit('selectStampingRule', el.name.toUpperCase());
-      };
-
-      return html(_templateObject8(), selectedClass, onclick, el.name);
-    });
-  }
-
-  function VotePicker() {
-    return state.elements.slice(1).map(function (el) {
-      var selectedClass = el.name.toLowerCase() === state.stampingRule ? 'selected' : '';
-
-      var onclick = function onclick() {
-        return emit('selectStampingRule', el.name.toLowerCase());
-      };
-
-      return html(_templateObject9(), selectedClass, onclick, el.name.toLowerCase());
-    });
-  }
-
-  function Rule(_ref, i) {
-    var when = _ref.when,
-        then = _ref.then;
-    return html(_templateObject10(), when.map(function (row, y) {
-      return html(_templateObject11(), row.map(function (symbol, x) {
-        var onclick = function onclick() {
-          return emit('stampRule', 'when', i, x, y);
-        };
-
-        return html(_templateObject12(), onclick, symbol);
-      }));
-    }), "=>", then.map(function (row, y) {
-      return html(_templateObject13(), row.map(function (symbol, x) {
-        var onclick = function onclick() {
-          return emit('stampRule', 'then', i, x, y);
-        };
-
-        return html(_templateObject14(), onclick, symbol);
-      }));
-    }));
-  }
-
-  var elementIndex = state.elements.findIndex(function (el) {
-    return el.name === state.editingElement;
-  });
-  return html(_templateObject15(), ElementList(), state.elements[elementIndex].rules.map(Rule), function () {
-    return emit('addRule');
-  }, SymbolPicker(), GivenPicker(), VotePicker());
+function map(x, in_min, in_max, out_min, out_max) {
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
 var Canvas = /*#__PURE__*/function (_Component) {
@@ -3320,7 +2968,7 @@ var Canvas = /*#__PURE__*/function (_Component) {
     value: function createElement(state, emit) {
       var _this3 = this;
 
-      var canvas = html(_templateObject16(), this.size, this.size);
+      var canvas = html(_templateObject(), this.size, this.size);
       var context = canvas.getContext('2d');
       context.font = "".concat(this.res, "px monospace");
       context.textAlign = 'left';
@@ -3360,10 +3008,533 @@ var Canvas = /*#__PURE__*/function (_Component) {
   return Canvas;
 }(Component);
 
-function map(x, in_min, in_max, out_min, out_max) {
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+module.exports = Canvas;
+},{"choo/html":"node_modules/choo/html/index.js","choo/component":"node_modules/choo/component/index.js","./colors.js":"components/colors.js"}],"store.js":[function(require,module,exports) {
+var _require = require('./splat.js'),
+    Rule = _require.Rule,
+    Element = _require.Element,
+    grid = _require.grid,
+    elements = _require.elements,
+    clearGrid = _require.clearGrid,
+    symmetryMap = _require.symmetryMap;
+
+var Canvas = require('./components/canvas.js');
+
+function store(state, emitter) {
+  state.elementsDict = elements;
+  state.elements = Object.values(elements);
+  state.grid = grid.map(function (r) {
+    return r.slice();
+  });
+  state.grid[5][5] = elements['A'];
+  state.editingElement = 'A';
+  state.stampingGrid = 'A';
+  state.stampingRule = '@';
+  state.interval = 0;
+  state.playing = false;
+  console.log('initialState', state);
+  emitter.on('selectEditingElement', function (symbol) {
+    console.log('select stamping element');
+    state.editingElement = symbol;
+    emitter.emit('render');
+  });
+  emitter.on('selectStampingGrid', function (symbol) {
+    console.log('select stamping grid');
+    state.stampingGrid = symbol;
+    emitter.emit('render');
+  });
+  emitter.on('selectStampingRule', function (symbol) {
+    console.log('select stamping rule');
+    state.stampingRule = symbol;
+    emitter.emit('render');
+  });
+  emitter.on('addRule', function () {
+    console.log('new rule');
+    var index = state.elements.findIndex(function (e) {
+      return e.name === state.editingElement;
+    });
+    state.elements[index].rules.push(new Rule({}));
+    emitter.emit('render');
+  });
+  emitter.on('stampGrid', function (x, y) {
+    console.log('stamp grid', x, y);
+    var element = state.elements.find(function (el) {
+      return el.name === state.stampingGrid;
+    });
+    state.grid[y][x] = element;
+    emitter.emit('render');
+  });
+  emitter.on('stampRule', function (type, i, x, y) {
+    console.log('stamp rule', type, i, x, y);
+    var index = state.elements.findIndex(function (e) {
+      return e.name === state.editingElement;
+    });
+    state.elements[index].rules[i][type][y][x] = state.stampingRule;
+    emitter.emit('render');
+  });
+  emitter.on('applyRules', function () {
+    for (var i = 0; i < 100; i++) {
+      var x = 1 + parseInt(Math.random() * 28);
+      var y = 1 + parseInt(Math.random() * 28);
+      var element = state.grid[y][x];
+
+      for (var j = 0; j < element.rules.length; j++) {
+        var rule = element.rules[j];
+        var matched = rule.match(state.grid, x, y);
+
+        if (matched) {
+          state.grid = rule.apply(state.grid, x, y);
+          break;
+        }
+      }
+    }
+  });
+  emitter.on('resetGrid', function () {
+    console.log('reset grid');
+    state.grid = state.grid = grid.map(function (r) {
+      return r.slice();
+    });
+  });
+  emitter.on('play', function () {
+    console.log('play');
+    state.playing = true;
+  });
+  emitter.on('stop', function () {
+    console.log('stop');
+    state.playing = false;
+  });
+  emitter.on('moveRuleUp', function (elementIndex, ruleIndex) {
+    var rules = state.elements[elementIndex].rules;
+
+    if (ruleIndex > 0) {
+      var swap = rules[ruleIndex];
+      rules[ruleIndex] = rules[ruleIndex - 1];
+      rules[ruleIndex - 1] = swap;
+    }
+
+    state.elements[elementIndex].rules = rules;
+    emitter.emit('render');
+  });
+  emitter.on('moveRuleDown', function (elementIndex, ruleIndex) {
+    var rules = state.elements[elementIndex].rules;
+
+    if (ruleIndex < rules.length - 1) {
+      var swap = rules[ruleIndex];
+      rules[ruleIndex] = rules[ruleIndex + 1];
+      rules[ruleIndex + 1] = swap;
+    }
+
+    state.elements[elementIndex].rules = rules;
+    emitter.emit('render');
+  });
+  emitter.on('nextSymmetry', function (elementIndex, ruleIndex, symmetry) {
+    var nextSymmetry = (symmetry + 1) % 4;
+    state.elements[elementIndex].rules[ruleIndex].symmetry = nextSymmetry;
+    emitter.emit('render');
+  });
+  state.interval = setInterval(function () {
+    if (state.playing) {
+      emitter.emit('applyRules');
+    }
+
+    state.cache(Canvas, 'canvas').render(state, emitter.emit);
+  }, 25);
 }
-},{"choo":"node_modules/choo/index.js","choo/html":"node_modules/choo/html/index.js","choo/component":"node_modules/choo/component/index.js","./splat.js":"splat.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+
+module.exports = store;
+},{"./splat.js":"splat.js","./components/canvas.js":"components/canvas.js"}],"components/grid.js":[function(require,module,exports) {
+function _templateObject4() {
+  var data = _taggedTemplateLiteral(["\n  <div id=\"grid\">\n    <div class=\"element-picker\">\n      ", "\n      ", "\n    </div>\n    <div class=\"grid\">\n      ", "\n    </div>\n  </div>\n  "]);
+
+  _templateObject4 = function _templateObject4() {
+    return data;
+  };
+
+  return data;
+}
+
+function _templateObject3() {
+  var data = _taggedTemplateLiteral(["\n          <button\n            style=\"background: ", "\"\n            onclick=", "\n            >\n          ", "\n          </button>\n        "]);
+
+  _templateObject3 = function _templateObject3() {
+    return data;
+  };
+
+  return data;
+}
+
+function _templateObject2() {
+  var data = _taggedTemplateLiteral(["\n      <button onclick=", ">", "</button>\n      <button onclick=", ">", "</button>\n      <button onclick=", ">", "</button>\n    "]);
+
+  _templateObject2 = function _templateObject2() {
+    return data;
+  };
+
+  return data;
+}
+
+function _templateObject() {
+  var data = _taggedTemplateLiteral(["\n        <button\n          style=\"background: ", "\"\n          class=", "\n          onclick=", "\n          >\n          ", "\n        </button>\n      "]);
+
+  _templateObject = function _templateObject() {
+    return data;
+  };
+
+  return data;
+}
+
+function _taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+var html = require('choo/html');
+
+var Canvas = require('./canvas.js');
+
+var colors = require('./colors.js');
+
+function Grid(state, emit) {
+  function ElementPicker() {
+    return state.elements.map(function (el, i) {
+      var selectedClass = el.name === state.stampingGrid ? 'selected' : '';
+
+      var onclick = function onclick() {
+        return emit('selectStampingGrid', el.name);
+      };
+
+      return html(_templateObject(), colors[i % colors.length], selectedClass, onclick, el.name);
+    });
+  }
+
+  function GameControls() {
+    return html(_templateObject2(), function () {
+      return emit('play');
+    }, ">", function () {
+      return emit('stop');
+    }, "||", function () {
+      return emit('resetGrid');
+    }, "<");
+  }
+
+  function ButtonStage() {
+    var buttons = [];
+
+    var _loop = function _loop(y) {
+      var _loop2 = function _loop2(x) {
+        var el = state.grid[y][x];
+        var i = state.elements.findIndex(function (e) {
+          return e.name === el.name;
+        });
+
+        var onclick = function onclick() {
+          return emit('stampGrid', x, y);
+        };
+
+        buttons.push(html(_templateObject3(), colors[i % colors.length], onclick, el.name));
+      };
+
+      for (var x = 0; x < 30; x++) {
+        _loop2(x);
+      }
+    };
+
+    for (var y = 0; y < 30; y++) {
+      _loop(y);
+    }
+
+    return buttons;
+  }
+
+  function CanvasStage() {
+    return state.cache(Canvas, 'canvas').render(state, emit);
+  }
+
+  return html(_templateObject4(), GameControls(), ElementPicker(), CanvasStage());
+}
+
+module.exports = Grid;
+},{"choo/html":"node_modules/choo/html/index.js","./canvas.js":"components/canvas.js","./colors.js":"components/colors.js"}],"components/elementlist.js":[function(require,module,exports) {
+function _templateObject() {
+  var data = _taggedTemplateLiteral(["\n      <button\n        class=", "\n        onclick=", "\n        >\n        ", "\n      </button>\n    "]);
+
+  _templateObject = function _templateObject() {
+    return data;
+  };
+
+  return data;
+}
+
+function _taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+var html = require('choo/html');
+
+function ElementList(state, emit) {
+  return state.elements.map(function (el) {
+    var selectedClass = el.name === state.editingElement ? 'selected' : '';
+
+    var onclick = function onclick() {
+      return emit('selectEditingElement', el.name);
+    };
+
+    return html(_templateObject(), selectedClass, onclick, el.name);
+  });
+}
+
+module.exports = ElementList;
+},{"choo/html":"node_modules/choo/html/index.js"}],"components/symbolpicker.js":[function(require,module,exports) {
+function _templateObject() {
+  var data = _taggedTemplateLiteral(["\n      <button\n        class=", "\n        onclick=", "\n        >\n        ", "\n      </button>"]);
+
+  _templateObject = function _templateObject() {
+    return data;
+  };
+
+  return data;
+}
+
+function _taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+var html = require('choo/html');
+
+function SymbolPicker(state, emit) {
+  var symbols = ['@', '.', '?', '_'];
+  return symbols.map(function (symbol) {
+    var selectedClass = symbol === state.stampingRule ? 'selected' : '';
+
+    var onclick = function onclick() {
+      return emit('selectStampingRule', symbol);
+    };
+
+    return html(_templateObject(), selectedClass, onclick, symbol);
+  });
+}
+
+module.exports = SymbolPicker;
+},{"choo/html":"node_modules/choo/html/index.js"}],"components/givenpicker.js":[function(require,module,exports) {
+function _templateObject() {
+  var data = _taggedTemplateLiteral(["\n      <button\n        class=", "\n        onclick=", "\n        >\n        ", "\n      </button>"]);
+
+  _templateObject = function _templateObject() {
+    return data;
+  };
+
+  return data;
+}
+
+function _taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+var html = require('choo/html');
+
+function GivenPicker(state, emit) {
+  return state.elements.slice(1).map(function (el) {
+    var selectedClass = el.name === state.stampingRule ? 'selected' : '';
+
+    var onclick = function onclick() {
+      return emit('selectStampingRule', el.name.toUpperCase());
+    };
+
+    return html(_templateObject(), selectedClass, onclick, el.name);
+  });
+}
+
+module.exports = GivenPicker;
+},{"choo/html":"node_modules/choo/html/index.js"}],"components/votepicker.js":[function(require,module,exports) {
+function _templateObject() {
+  var data = _taggedTemplateLiteral(["\n      <button\n        class=", "\n        onclick=", "\n        >\n        ", "\n      </button>"]);
+
+  _templateObject = function _templateObject() {
+    return data;
+  };
+
+  return data;
+}
+
+function _taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+var html = require('choo/html');
+
+function VotePicker(state, emit) {
+  return state.elements.slice(1).map(function (el) {
+    var selectedClass = el.name.toLowerCase() === state.stampingRule ? 'selected' : '';
+
+    var onclick = function onclick() {
+      return emit('selectStampingRule', el.name.toLowerCase());
+    };
+
+    return html(_templateObject(), selectedClass, onclick, el.name.toLowerCase());
+  });
+}
+
+module.exports = VotePicker;
+},{"choo/html":"node_modules/choo/html/index.js"}],"components/rule.js":[function(require,module,exports) {
+function _templateObject6() {
+  var data = _taggedTemplateLiteral(["\n                  <button onclick=", ">", "</button>\n                "]);
+
+  _templateObject6 = function _templateObject6() {
+    return data;
+  };
+
+  return data;
+}
+
+function _templateObject5() {
+  var data = _taggedTemplateLiteral(["\n            <div>\n              ", "\n            </div>\n          "]);
+
+  _templateObject5 = function _templateObject5() {
+    return data;
+  };
+
+  return data;
+}
+
+function _templateObject4() {
+  var data = _taggedTemplateLiteral(["\n                    <button onclick=", ">", "</button>\n                  "]);
+
+  _templateObject4 = function _templateObject4() {
+    return data;
+  };
+
+  return data;
+}
+
+function _templateObject3() {
+  var data = _taggedTemplateLiteral(["\n                    <button>@</button>\n                  "]);
+
+  _templateObject3 = function _templateObject3() {
+    return data;
+  };
+
+  return data;
+}
+
+function _templateObject2() {
+  var data = _taggedTemplateLiteral(["\n            <div>\n              ", "\n            </div>\n          "]);
+
+  _templateObject2 = function _templateObject2() {
+    return data;
+  };
+
+  return data;
+}
+
+function _templateObject() {
+  var data = _taggedTemplateLiteral(["\n    <div class=\"rule\" draggable=\"true\">\n      <div class=\"controls\">\n        <button onclick=", ">\u02C6</button>\n        <button onclick=", ">", "</button>\n        <button onclick=", " class=\"rotate\">\u02C6</button>\n      </div>\n      <div class=\"when\">\n        ", "\n      </div>\n      <div> ", " </div>\n      <div class=\"then\">\n        ", "\n      </div>\n    </div>\n  "]);
+
+  _templateObject = function _templateObject() {
+    return data;
+  };
+
+  return data;
+}
+
+function _taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+var html = require('choo/html');
+
+function Rule(elementIndex, ruleIndex, state, emit) {
+  var _state$elements$eleme = state.elements[elementIndex].rules[ruleIndex],
+      when = _state$elements$eleme.when,
+      then = _state$elements$eleme.then,
+      symmetry = _state$elements$eleme.symmetry;
+  return html(_templateObject(), function () {
+    return emit('moveRuleUp', elementIndex, ruleIndex);
+  }, function () {
+    return emit('nextSymmetry', elementIndex, ruleIndex, symmetry);
+  }, symmetry, function () {
+    return emit('moveRuleDown', elementIndex, ruleIndex);
+  }, when.map(function (row, y) {
+    return html(_templateObject2(), row.map(function (symbol, x) {
+      if (y == 1 && x == 1) {
+        return html(_templateObject3());
+      } else {
+        var onclick = function onclick() {
+          return emit('stampRule', 'when', ruleIndex, x, y);
+        };
+
+        return html(_templateObject4(), onclick, symbol);
+      }
+    }));
+  }), "=>", then.map(function (row, y) {
+    return html(_templateObject5(), row.map(function (symbol, x) {
+      var onclick = function onclick() {
+        return emit('stampRule', 'then', ruleIndex, x, y);
+      };
+
+      return html(_templateObject6(), onclick, symbol);
+    }));
+  }));
+}
+
+module.exports = Rule;
+},{"choo/html":"node_modules/choo/html/index.js"}],"components/editor.js":[function(require,module,exports) {
+function _templateObject() {
+  var data = _taggedTemplateLiteral(["\n    <div id=\"editor\">\n      <div class=\"element-list\">\n        ", "\n      </div>\n      <div class=\"rules\">\n        ", "\n        <button class=\"add-rule\" onclick=", ">+</button>\n      </div>\n      <div class=\"element-picker\">\n        ", "\n      </div>\n      <div class=\"element-picker\">\n        ", "\n      </div>\n      <div class=\"element-picker\">\n        ", "\n      </div>\n    </div>\n  "]);
+
+  _templateObject = function _templateObject() {
+    return data;
+  };
+
+  return data;
+}
+
+function _taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+var html = require('choo/html');
+
+var ElementList = require('./elementlist.js');
+
+var SymbolPicker = require('./symbolpicker.js');
+
+var GivenPicker = require('./givenpicker.js');
+
+var VotePicker = require('./votepicker.js');
+
+var Rule = require('./rule.js');
+
+function Editor(state, emit) {
+  var elementIndex = state.elements.findIndex(function (el) {
+    return el.name === state.editingElement;
+  });
+  return html(_templateObject(), ElementList(state, emit), state.elements[elementIndex].rules.map(function (rule, ruleIndex) {
+    return Rule(elementIndex, ruleIndex, state, emit);
+  }), function () {
+    return emit('addRule');
+  }, SymbolPicker(state, emit), GivenPicker(state, emit), VotePicker(state, emit));
+}
+
+module.exports = Editor;
+},{"choo/html":"node_modules/choo/html/index.js","./elementlist.js":"components/elementlist.js","./symbolpicker.js":"components/symbolpicker.js","./givenpicker.js":"components/givenpicker.js","./votepicker.js":"components/votepicker.js","./rule.js":"components/rule.js"}],"app.js":[function(require,module,exports) {
+function _templateObject() {
+  var data = _taggedTemplateLiteral(["\n    <div id=\"app\">\n      ", "\n      ", "\n    </div>\n  "]);
+
+  _templateObject = function _templateObject() {
+    return data;
+  };
+
+  return data;
+}
+
+function _taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+var choo = require('choo');
+
+var html = require('choo/html');
+
+var store = require('./store.js');
+
+var colors = require('./components/colors.js');
+
+var Grid = require('./components/grid.js');
+
+var Editor = require('./components/editor.js');
+
+var app = choo();
+app.use(store);
+app.route('/', Layout);
+app.mount('#app');
+
+function Layout(state, emit) {
+  return html(_templateObject(), Grid(state, emit), Editor(state, emit));
+}
+},{"choo":"node_modules/choo/index.js","choo/html":"node_modules/choo/html/index.js","./store.js":"store.js","./components/colors.js":"components/colors.js","./components/grid.js":"components/grid.js","./components/editor.js":"components/editor.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -3391,7 +3562,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53131" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56646" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
