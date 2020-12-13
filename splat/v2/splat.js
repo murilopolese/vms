@@ -115,7 +115,7 @@ function Rule({ when = [[]], then = [[]], symmetry = 0 }) {
     return givenMatch && voteMatch
   }
 
-  this.apply = function(grid, x, y) {
+  this.apply = function(elements, grid, x, y) {
     let element = grid[y][x]
     // console.log('applying rule', this.then)
     let then = this.cloneArray(this.then)
@@ -127,7 +127,7 @@ function Rule({ when = [[]], then = [[]], symmetry = 0 }) {
         let symbol = then[_y][_x]
         switch (symbol) {
           case '@':
-            grid[y+_y-1][x+_x-1] = elements[element.name]
+            grid[y+_y-1][x+_x-1] = elements.find(e => e.name === element.name)
             break
           case '.':
           case '?':
@@ -138,7 +138,7 @@ function Rule({ when = [[]], then = [[]], symmetry = 0 }) {
               grid[y+_y-1][x+_x-1] = empty
             break;
           default:
-            grid[y+_y-1][x+_x-1] = elements[symbol.toUpperCase()]
+            grid[y+_y-1][x+_x-1] = elements.find(e => e.name === symbol.toUpperCase())
         }
       }
     }

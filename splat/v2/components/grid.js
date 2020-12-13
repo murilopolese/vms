@@ -25,25 +25,6 @@ function Grid(state, emit) {
       <button onclick=${() => emit('resetGrid')}>${`<`}</button>
     `
   }
-  function ButtonStage() {
-    let buttons = []
-    for (let y = 0; y < 30; y++) {
-      for (let x = 0; x < 30; x++) {
-        let el = state.grid[y][x]
-        let i = state.elements.findIndex(e => e.name === el.name)
-        let onclick = () => emit('stampGrid', x, y)
-        buttons.push(html`
-          <button
-            style="background: ${colors[i%colors.length]}"
-            onclick=${onclick}
-            >
-          ${el.name}
-          </button>
-        `)
-      }
-    }
-    return buttons
-  }
   function CanvasStage() {
     return state.cache(Canvas, 'canvas').render(state, emit)
   }
@@ -52,6 +33,8 @@ function Grid(state, emit) {
     <div class="element-picker">
       ${GameControls()}
       ${ElementPicker()}
+      <button onclick=${() => emit('save')}>•</button>
+      <button onclick=${() => emit('openFileDialog')}>º</button>
     </div>
     <div class="grid">
       ${CanvasStage()}

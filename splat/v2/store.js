@@ -68,7 +68,7 @@ function store(state, emitter) {
         let rule = element.rules[j]
         let matched = rule.match(state.grid, x, y)
         if (matched) {
-          state.grid = rule.apply(state.grid, x, y)
+          state.grid = rule.apply(state.elements, state.grid, x, y)
           break
         }
       }
@@ -118,6 +118,62 @@ function store(state, emitter) {
     emitter.emit('render')
   })
 
+  emitter.on('save', function() {
+    const grid = JSON.parse(JSON.stringify(state.grid))
+    const snapshot = {
+      elements: state.elements,
+      grid: grid,
+      editingElement: state.editingElement,
+      stampingGrid: state.stampingGrid,
+      stampingRule: state.stampingRule,
+      playing: state.playing
+    }
+    const data = JSON.stringify(snapshot, null, 2)
+    const contentType = 'application/octet-stream'
+    const blob = new Blob( [ data ], { type: contentType } )
+    const e = document.createEvent('MouseEvents')
+    const a = document.createElement('a')
+    a.download = `snapshot_${Date.now()}.json`
+    a.href = window.URL.createObjectURL(blob)
+    a.dataset.downloadurl = [contentType, a.download, a.href].join(':')
+    e.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
+    a.dispatchEvent(e)
+    console.log(state, snapshot)
+  })
+
+  emitter.on('openFileDialog', function() {
+    console.log('open file dialog')
+    let fileInput = document.querySelector('#file-input')
+    fileInput.click()
+  })
+
+  emitter.on('loadState', function(file) {
+    console.log('loadState')
+    function formatElement(el) {
+      let rules = el.rules.map((rule) => new Rule(rule))
+      return new Element({
+        name: el.name,
+        rules: rules
+      })
+    }
+    let reader = new FileReader()
+    reader.onload = function(e) {
+      let content = JSON.parse(e.target.result)
+      let elements = content.elements.map(formatElement)
+      let newGrid = content.grid.map(function(row) {
+        return row.map(formatElement)
+      })
+      state.elements = elements
+      state.grid = newGrid
+      state.editingElement = content.editingElement
+      state.stampingGrid = content.stampingGrid
+      state.stampingRule = content.stampingGrid
+      state.playing = content.playing
+      emitter.emit('render')
+    }
+    reader.readAsText(file)
+  })
+
   state.interval = setInterval(() => {
     if (state.playing) {
       emitter.emit('applyRules')
@@ -125,6 +181,7 @@ function store(state, emitter) {
     state.cache(Canvas, 'canvas').render(state, emitter.emit)
   }, 25)
 
+  window.state = state
 }
 
 module.exports = store
