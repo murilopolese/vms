@@ -3021,7 +3021,6 @@ var _require = require('./splat.js'),
 var Canvas = require('./components/canvas.js');
 
 function store(state, emitter) {
-  state.elementsDict = elements;
   state.elements = Object.values(elements);
   state.grid = grid.map(function (r) {
     return r.slice();
@@ -3562,7 +3561,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56646" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53331" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

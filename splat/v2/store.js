@@ -9,7 +9,6 @@ let {
 const Canvas = require('./components/canvas.js')
 
 function store(state, emitter) {
-  state.elementsDict = elements
   state.elements = Object.values(elements)
   state.grid = grid.map(r => r.slice())
   state.grid[5][5] = elements['A']
