@@ -60,7 +60,7 @@ function store(state, emitter) {
   })
 
   emitter.on('applyRules', function() {
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 30*30; i++) {
       let x = 1 + parseInt(Math.random() * 28)
       let y = 1 + parseInt(Math.random() * 28)
       let element = state.grid[y][x]
