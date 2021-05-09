@@ -18,7 +18,6 @@ body {
   background: #202;
   margin: 0;
   display: flex;
-  flex-direction: column;
   min-height: 100vh;
 }
 
@@ -37,10 +36,6 @@ button {
 
 button:hover {
   /* background: none; */
-}
-
-img {
-  max-width: 100%;
 }
 
 main {
@@ -119,17 +114,4 @@ main {
   margin: auto;
   /* width: 40rem !important;
   height: 40rem !important; */
-}
-
-#stories {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  width: 50%;
-  margin: 1em auto;
-}
-
-#stories .story {
-  width: 20%;
-  padding: 1rem;
 }

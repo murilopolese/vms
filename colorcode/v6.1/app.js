@@ -88,70 +88,24 @@ function preload() {
 }
 
 function setup() {
-  elements.screen = document.querySelector('#screen')
-  elements.controls = document.querySelector('#controls')
-  elements.buttonUp = document.querySelector('#button-up')
-  elements.buttonRight = document.querySelector('#button-right')
-  elements.buttonDown = document.querySelector('#button-down')
-  elements.buttonLeft = document.querySelector('#button-left')
-  elements.buttonA = document.querySelector('#button-a')
-  elements.buttonB = document.querySelector('#button-b')
-  elements.buttonC = document.querySelector('#button-c')
-
-  elements.buttonUp.addEventListener('click', () => {
-    keyPressed('ArrowUp')
-    setTimeout(() => keyReleased())
-  })
-  elements.buttonRight.addEventListener('click', () => {
-    keyPressed('ArrowRight')
-    setTimeout(() => keyReleased())
-  })
-  elements.buttonDown.addEventListener('click', () => {
-    keyPressed('ArrowDown')
-    setTimeout(() => keyReleased())
-  })
-  elements.buttonLeft.addEventListener('click', () => {
-    keyPressed('ArrowLeft')
-    setTimeout(() => keyReleased())
-  })
-  elements.buttonA.addEventListener('click', () => {
-    keyPressed('z')
-    setTimeout(() => keyReleased())
-  })
-  elements.buttonB.addEventListener('click', () => {
-    keyPressed('x')
-    setTimeout(() => keyReleased())
-  })
-  elements.buttonC.addEventListener('click', () => {
-    keyPressed('c')
-    setTimeout(() => keyReleased())
-  })
-
-  let gallery = document.querySelector('#gallery')
-  gallery.innerHTML = ''
-  let thumbnails = storiesIndex.map((name, i) => {
-    let img = document.createElement('img')
-    img.src = `stories/${name}.png`
-    let a = document.createElement('a')
-    a.href = `#story-${i}`
-    a.appendChild(img)
-    gallery.appendChild(a)
-  })
-
-  canvas = createCanvas(320, 320)
+  elements.screen = document.querySelector('#canvas')
+  let rem = windowWidth/100
+  canvas = createCanvas(40*rem, 40*rem)
   canvas.parent(elements.screen)
   angleMode(DEGREES)
-  res = parseInt(canvas.width/state.columns)
+  res = (canvas.width/state.columns)
   background(colors[0])
+  renderRuleEditor(state)
 }
 
 function draw() {
-  res = parseInt(canvas.width/state.columns)
+  res = (canvas.width/state.columns)
   background(colors[0])
   if (window.location.hash.indexOf('#story-') === 0) {
     let i = parseInt(window.location.hash.split('-')[1])
     state = Object.assign({}, stories[i])
     window.location.hash = ''
+    renderRuleEditor(state)
   }
   state = update(state)
   render(state)
@@ -282,7 +236,6 @@ function drawCursor(state) {
   let { cursor, selectedColor } = state
   let [ x, y ] = cursor
   let c = color(colors[selectedColor])
-  c.setAlpha(map(sin(frameCount*5), -1, 1, 175, 255))
   if (selectedColor === 0) {
     fill(100)
     stroke(100)
@@ -297,7 +250,12 @@ function drawCursor(state) {
 }
 
 function update(state) {
-  if (state.view === 'play' && frameCount % 10 == 0) state = applyRules(state, 'tick')
+  let x = map(mouseX, 0, width, 0, state.columns)
+  let y = map(mouseY, 0, height, 0, state.rows)
+  state.cursor = [ parseInt(x), parseInt(y) ]
+  if (state.view === 'play' && frameCount % 5 == 0) {
+    state = applyRules(state, 'tick')
+  }
   return state
 }
 
@@ -310,7 +268,10 @@ function keyPressed(e) {
     e.preventDefault()
   }
   // playSynth(key)
-  highlightControls(key)
+  // highlightControls(key)
+  if (Number.isFinite(parseInt(key))) {
+    state.selectedColor = parseInt(key)
+  }
   switch (state.view) {
     case 'play':
       state = handleEventPlay(state, key)
@@ -326,17 +287,21 @@ function keyPressed(e) {
 }
 
 function keyReleased(e) {
-  elements.buttonUp.style.background = sys_color[2]
-  elements.buttonRight.style.background = sys_color[2]
-  elements.buttonDown.style.background = sys_color[2]
-  elements.buttonLeft.style.background = sys_color[2]
-  elements.buttonA.style.background = sys_color[2]
-  elements.buttonB.style.background = sys_color[2]
-  elements.buttonC.style.background = sys_color[2]
-
   if (window.location.hash === '#record') {
     if (pilot.steps === null) pilot.steps = []
     pilot.steps.push(key)
+  }
+}
+
+function mousePressed() {
+  if (mouseX > 0 && mouseY > 0 && mouseX < width && mouseY < height) {
+    state = setTileMapColor(state)
+  }
+}
+
+function mouseDragged() {
+  if (mouseX > 0 && mouseY > 0 && mouseX < width && mouseY < height) {
+    state = setTileMapColor(state)
   }
 }
 
@@ -482,7 +447,7 @@ function applyRules(state, eventName) {
           let aroundCell = [
             tileMap[               max(y-1, 0)].slice(startX, endX),
             tileMap[                        y ].slice(startX, endX),
-            tileMap[  min(y+1, tileMap.length)].slice(startX, endX)
+            tileMap[min(y+1, tileMap.length)].slice(startX, endX)
           ]
           let matched = matchRule(aroundCell, when)
           if (matched) {
@@ -624,4 +589,116 @@ function copyArray(arr) {
     }
   }
   return n
+}
+
+function windowResized() {
+  let rem = windowWidth/100
+  resizeCanvas(40*rem, 40*rem);
+}
+
+function renderRuleEditor(state) {
+  let rules = [ "ʘ" ]
+  let ruleSelector = rules.map((rule, i) => {
+    return h('li',
+      h('button', {
+        click: () => setEvent(i),
+        class: i === state.selectedEvent ? 'selected' : ''
+      }, rule)
+    )
+  })
+
+  let ruleList = state.rules[state.selectedEvent].map((rule, ruleIndex) => {
+    let controlButtons = [
+      h('button', {}, `˄`),
+      h('button', {}, `x`),
+      h('button', {}, `˅`)
+    ]
+    let whenButtons = []
+    for (let y = 0; y < 3; y++) {
+      let row = []
+      for (let x = 0; x < 3; x++) {
+        let r = rule[0][x][y]
+        if (r === null) r = ''
+        row.push(
+          h('button', {
+            style: `background: ${colors[rule[0][x][y]]}`,
+            click: () => {
+              if (rule[0][x][y] === state.selectedColor) {
+                rule[0][x][y] = null
+              } else {
+                rule[0][x][y] = state.selectedColor
+              }
+              renderRuleEditor(state)
+            }
+          }, r)
+        )
+      }
+      whenButtons.push(h('div', {}, ...row))
+    }
+    let thenButtons = []
+    for (let y = 0; y < 3; y++) {
+      let row = []
+      for (let x = 0; x < 3; x++) {
+        let r = rule[1][x][y]
+        if (r === null) r = ''
+        row.push(
+          h('button', {
+            style: `background: ${colors[rule[1][x][y]]}`,
+            click: () => {
+              if (rule[1][x][y] === state.selectedColor) {
+                rule[1][x][y] = null
+              } else {
+                rule[1][x][y] = state.selectedColor
+              }
+              renderRuleEditor(state)
+            }
+          }, r)
+        )
+      }
+      thenButtons.push(h('div', {}, ...row))
+    }
+
+    return h('li', { class: 'rule' }, ...[
+      // h('div', { class: 'controls' }, ...controlButtons),
+      h('div', { class: 'when' }, ...whenButtons),
+      h('div', { class: 'then' }, ...thenButtons)
+    ])
+  })
+
+  let layout = [
+    // h('ol', { id: 'rule-selector' }, ...ruleSelector),
+    h('ol', { id: 'rule-list' }, ...ruleList)
+  ]
+
+  r('#rules', layout)
+}
+
+function setColor(i) {
+  state = selectColor(state, i)
+  renderRuleEditor(state)
+}
+function setEvent(i) {
+  state = selectEvent(state, i)
+  renderRuleEditor(state)
+}
+function togglePlay() {
+  state.view = state.view == 'play' ? 'edit' : 'play'
+}
+
+function clearGrid() {
+  console.log('clear')
+  for (let y = 0; y < state.rows; y++) {
+    state.tileMap[y] = []
+    for (let x = 0; x < state.columns; x++) {
+      state.tileMap[y][x] = 0
+    }
+  }
+  for (let y = 0; y < state.rows; y++) {
+    state.tileMap[y][0] = 1
+    state.tileMap[y][state.columns-1] = 1
+  }
+  for (let x = 0; x < state.columns; x++) {
+    state.tileMap[0][x] = 1
+    state.tileMap[state.rows-1][x] = 1
+  }
 }

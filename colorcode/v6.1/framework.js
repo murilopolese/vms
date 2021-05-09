@@ -34,10 +34,8 @@ function r(query, el) {
 	} else {
 		target.appendChild(el)
 	}
-	if (rulesList) {
-		rulesList = target.querySelector('ol#rule-list')
-		rulesList.scrollTop = scrollTop
-	}
+	rulesList = target.querySelector('ol#rule-list')
+	rulesList.scrollTop = scrollTop
 }
 function on(emitter, eventName, callback) {
 	emitter.addEventListener(eventName, callback)

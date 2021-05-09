@@ -18,8 +18,8 @@ let state = {
   selectedRule: 0,
   selectedEvent: 0,
   view: 'edit',
-  columns: 32,
-  rows: 32
+  columns: 16,
+  rows: 16
 }
 let stories = []
 
@@ -40,7 +40,7 @@ for (let x = 0; x < state.columns; x++) {
 }
 for (let events = 0; events < eventNames.length; events++) {
   state.rules[events] = []
-  for (let rules = 0; rules < 16; rules++) {
+  for (let rules = 0; rules < 32; rules++) {
     let when = []
     let then = []
     for (let i = 0; i < 3; i++) {
@@ -79,6 +79,15 @@ let storiesIndex = [
   "rollingpixel",
 ]
 
+let synth
+let keysPressed = []
+
+function scaleNote(n) {
+  let s = ['C', 'D', 'F', 'G', 'A']
+  let o = parseInt(n / s.length) + 3
+  return `${s[n%s.length]}${o}`
+}
+
 function preload() {
   for (let i = 0; i < storiesIndex.length; i++) {
     stories.push(
@@ -96,6 +105,9 @@ function setup() {
   res = (canvas.width/state.columns)
   background(colors[0])
   renderRuleEditor(state)
+  renderStories(state)
+
+  synth = new Tone.PolySynth().toDestination()
 }
 
 function draw() {
@@ -109,6 +121,12 @@ function draw() {
   }
   state = update(state)
   render(state)
+
+  if (frameCount % 10 === 0) {
+    try {
+      playNote(synth, state)
+    } catch(e) { console.log(e) }
+  }
 }
 
 function render(state) {
@@ -673,6 +691,15 @@ function renderRuleEditor(state) {
   r('#rules', layout)
 }
 
+function renderStories(state) {
+  let gallery = storiesIndex.map((name, i) => {
+    return h('a', { class: 'story', href: `#story-${i}`},
+      h('img', { src: `stories/${name}.png`, alt: name })
+    )
+  })
+  r('#stories', gallery)
+}
+
 function setColor(i) {
   state = selectColor(state, i)
   renderRuleEditor(state)
@@ -683,6 +710,19 @@ function setEvent(i) {
 }
 function togglePlay() {
   state.view = state.view == 'play' ? 'edit' : 'play'
+}
+
+function playNote(synth, state) {
+  for (let i = 1; i < 15; i++) {
+    if (state.tileMap[1][i] > 8) {
+      if (!keyPressed[i]) {
+        keyPressed[i] = true
+        synth.triggerAttackRelease(scaleNote(i), Tone.now(), '8n')
+      }
+    } else {
+      keyPressed[i] = false
+    }
+  }
 }
 
 function clearGrid() {
