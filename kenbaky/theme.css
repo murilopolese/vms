@@ -1,0 +1,92 @@
+* {
+  box-sizing: border-box;
+}
+:root {
+  --slot-size: calc(70vw / 17);
+  font-size: 1vw;
+}
+body {
+  margin: 0;
+  font-family: monospace;
+  background: #e8a863;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+ul {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#computer {
+  border: solid 2.5vw #2f4550;
+  background: #959595;
+  width: 80vw;
+  height: 30vw;
+  border-radius: 5vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#computer .panel {
+  width: 90%;
+  height: 80%;
+  border-radius: 2.5vw;
+}
+
+.slot {
+  width: var(--slot-size);
+  height: var(--slot-size);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.1vw;
+}
+
+button {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: white;
+  border-radius: 1vw;
+  cursor: pointer;
+}
+
+button:active {
+  background: lightgrey;
+}
+
+.led {
+  width: 100%;
+  height: 100%;
+  border-radius: 100%;
+  background: #333333;
+  align-self: flex-end;
+}
+
+.led.on {
+  background: green;
+}
+
+.screen {
+  width: calc(var(--slot-size) * 6);
+  height: calc(var(--slot-size) * 3);
+  background: #5c7d2e;
+  color: #1a5b0c;
+  padding: calc(var(--slot-size) * 0.1);
+  font-size: calc(var(--slot-size) * 0.6);
+}
+
+.leds .slot {
+  margin-top: calc(var(--slot-size) * 2);
+}
