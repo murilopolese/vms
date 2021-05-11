@@ -12,6 +12,7 @@ body {
   width: 100vw;
   height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
@@ -26,6 +27,7 @@ ul {
 }
 
 #computer {
+  position: relative;
   border: solid 2.5vw #2f4550;
   background: #959595;
   width: 80vw;
@@ -67,11 +69,10 @@ button:active {
 }
 
 .led {
-  width: 100%;
-  height: 100%;
+  width: 50%;
+  height: 50%;
   border-radius: 100%;
   background: #333333;
-  align-self: flex-end;
 }
 
 .led.on {
@@ -85,8 +86,29 @@ button:active {
   color: #1a5b0c;
   padding: calc(var(--slot-size) * 0.1);
   font-size: calc(var(--slot-size) * 0.6);
+  overflow-y: scroll;
+}
+
+.screen .active {
+  color: #5c7d2e;
+  background: #1a5b0c;
 }
 
 .leds .slot {
   margin-top: calc(var(--slot-size) * 2);
+}
+
+#logo {
+  position: absolute;
+  top: calc(var(--slot-size) * 0.5);
+  left: calc(var(--slot-size));
+  font-size: 2vw;
+  letter-spacing: 0.5em;
+  color: #2f4550;
+  opacity: 0.8;
+  font-weight: bold;
+}
+
+.rtfm {
+  padding: 1em 0;
 }

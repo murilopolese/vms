@@ -18,15 +18,15 @@ function fill(n, length) {
   return m
 }
 
-function execute(state) {
-  const pointer = state.memory[state.regP]
-  const i = state.memory[pointer]
-
-  console.log(fill(dec2oct(i), 3))
-
-  state.memory[state.regP] += 2
-  emit('render')
-  return state
+function memoryDump(state) {
+  return state.memory.map(
+    (m, i) => {
+      if (i === state.memory[state.regP]) {
+        return h('span', { class: 'active' }, fill(dec2oct(m), 3) + ' ')
+      }
+      return h('span', {}, fill(dec2oct(m), 3) + ' ')
+    }
+  )
 }
 
 let state = {
@@ -54,9 +54,6 @@ for (let i = 0; i < 256; i++) {
   state.memory[i] = 0
 }
 
-state.memory[0] = 0xFF
-
-
 on('render', () => render('body', Computer(state, emit)))
 on('setinput', (e) => {
   let mask = '1'
@@ -80,17 +77,26 @@ on('set', (e) => {
 })
 on('read', (e) => {
   state.memory[state.input] = state.memory[state.memory[state.regP]]
+  state.memory[state.regP] += 1
   emit('render')
 })
 on('store', (e) => {
   state.memory[state.memory[state.regP]] = state.memory[state.input]
+  state.memory[state.regP] += 1
   emit('render')
 })
 on('step', () => {
   state = execute(state)
   emit('render')
 })
-
+on('run', () => {
+  state.running = true
+  state.runInterval = setInterval(() => emit('step'), 250)
+})
+on('stop', () => {
+  state.running = false
+  clearInterval(state.runInterval)
+})
 
 function Button(opts, child) {
   const { click } = opts
@@ -108,42 +114,50 @@ function LED(opts) {
 
 function Computer(state, emit) {
   const input = fill(dec2bin(state.memory[state.input]), 8)
-  return h('div', { id: 'computer' },
-    h('ul', { class: 'leds' },
-      h('li', { class: 'slot' }),
-      ...input.split('').map((l) => h('li', { class: 'slot' }, LED({on: l}))
+  return [
+    h('div', { id: 'computer' },
+      h('div', { id: 'logo' }, 'KENBAKy-0'),
+      h('ul', { class: 'leds' },
+        h('li', { class: 'slot' }),
+        ...input.split('').map((l) => h('li', { class: 'slot' }, LED({on: l}))
+        ),
+        h('li', { class: 'slot' }),
+        h('li', { class: 'screen' }, ...memoryDump(state)),
+        h('li', { class: 'slot' }),
       ),
-      h('li', { class: 'slot' }),
-      // h('li', { class: 'screen' }),
-      // h('li', { class: 'slot' }),
-    ),
-    h('ul', { class: 'labels' },
-      h('li', { class: 'slot' }),
-      ...state.labels.map((l) => h('li', { class: 'slot' }, l)
+      h('ul', { class: 'labels' },
+        h('li', { class: 'slot' }),
+        ...state.labels.map((l) => h('li', { class: 'slot' }, l)
+        ),
+        h('li', { class: 'slot' })
       ),
-      h('li', { class: 'slot' })
+      h('ul', { class: 'buttons' },
+        h('li', { class: 'slot' }),
+        h('li', { class: 'slot' }, Button({ click: () => emit('setinput', 7)})),
+        h('li', { class: 'slot' }, Button({ click: () => emit('setinput', 6)})),
+        h('li', { class: 'slot' }, Button({ click: () => emit('setinput', 5)})),
+        h('li', { class: 'slot' }, Button({ click: () => emit('setinput', 4)})),
+        h('li', { class: 'slot' }, Button({ click: () => emit('setinput', 3)})),
+        h('li', { class: 'slot' }, Button({ click: () => emit('setinput', 2)})),
+        h('li', { class: 'slot' }, Button({ click: () => emit('setinput', 1)})),
+        h('li', { class: 'slot' }, Button({ click: () => emit('setinput', 0)})),
+        h('li', { class: 'slot' }, Button({ click: () => emit('clearinput')})),
+        h('li', { class: 'slot' }, Button({ click: () => emit('display')})),
+        h('li', { class: 'slot' }, Button({ click: () => emit('set')})),
+        h('li', { class: 'slot' }, Button({ click: () => emit('read')})),
+        h('li', { class: 'slot' }, Button({ click: () => emit('store')})),
+        h('li', { class: 'slot' }, Button({ click: () => emit('run')})),
+        h('li', { class: 'slot' }, Button({ click: () => emit('stop')})),
+        h('li', { class: 'slot' }, Button({ click: () => emit('step')})),
+        h('li', { class: 'slot' }),
+      ),
     ),
-    h('ul', { class: 'buttons' },
-      h('li', { class: 'slot' }),
-      h('li', { class: 'slot' }, Button({ click: () => emit('setinput', 7)})),
-      h('li', { class: 'slot' }, Button({ click: () => emit('setinput', 6)})),
-      h('li', { class: 'slot' }, Button({ click: () => emit('setinput', 5)})),
-      h('li', { class: 'slot' }, Button({ click: () => emit('setinput', 4)})),
-      h('li', { class: 'slot' }, Button({ click: () => emit('setinput', 3)})),
-      h('li', { class: 'slot' }, Button({ click: () => emit('setinput', 2)})),
-      h('li', { class: 'slot' }, Button({ click: () => emit('setinput', 1)})),
-      h('li', { class: 'slot' }, Button({ click: () => emit('setinput', 0)})),
-      h('li', { class: 'slot' }, Button({ click: () => emit('clearinput')})),
-      h('li', { class: 'slot' }, Button({ click: () => emit('display')})),
-      h('li', { class: 'slot' }, Button({ click: () => emit('set')})),
-      h('li', { class: 'slot' }, Button({ click: () => emit('read')})),
-      h('li', { class: 'slot' }, Button({ click: () => emit('store')})),
-      h('li', { class: 'slot' }, Button({ click: () => emit('run')})),
-      h('li', { class: 'slot' }, Button({ click: () => emit('stop')})),
-      h('li', { class: 'slot' }, Button({ click: () => emit('step')})),
-      h('li', { class: 'slot' }),
-    ),
-  )
+    h('a', {
+      href: 'http://www.kenbakkit.com/manuals.html',
+      target: '_blank',
+      class: 'rtfm'
+    }, 'RTFM')
+  ]
 }
 
 window.onload = function() {
