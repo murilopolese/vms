@@ -79,14 +79,7 @@ let storiesIndex = [
   "rollingpixel",
 ]
 
-let synth
 let keysPressed = []
-
-function scaleNote(n) {
-  let s = ['C', 'D', 'F', 'G', 'A']
-  let o = parseInt(n / s.length) + 3
-  return `${s[n%s.length]}${o}`
-}
 
 function preload() {
   for (let i = 0; i < storiesIndex.length; i++) {
@@ -106,8 +99,6 @@ function setup() {
   background(colors[0])
   renderRuleEditor(state)
   renderStories(state)
-
-  synth = new Tone.PolySynth().toDestination()
 }
 
 function draw() {
@@ -121,12 +112,6 @@ function draw() {
   }
   state = update(state)
   render(state)
-
-  if (frameCount % 10 === 0) {
-    try {
-      playNote(synth, state)
-    } catch(e) { console.log(e) }
-  }
 }
 
 function render(state) {
@@ -285,8 +270,6 @@ function keyPressed(e) {
   } else {
     e.preventDefault()
   }
-  // playSynth(key)
-  // highlightControls(key)
   if (Number.isFinite(parseInt(key))) {
     state.selectedColor = parseInt(key)
   }
@@ -320,37 +303,6 @@ function mousePressed() {
 function mouseDragged() {
   if (mouseX > 0 && mouseY > 0 && mouseX < width && mouseY < height) {
     state = setTileMapColor(state)
-  }
-}
-
-function highlightControls(key) {
-  switch (key) {
-    case 'ArrowUp':
-      elements.buttonUp.style.background = sys_color[3]
-      break;
-    case 'ArrowRight':
-      elements.buttonRight.style.background = sys_color[3]
-      break;
-    case 'ArrowDown':
-      elements.buttonDown.style.background = sys_color[3]
-      break;
-    case 'ArrowLeft':
-      elements.buttonLeft.style.background = sys_color[3]
-      break;
-    case 'ArrowLeft':
-      elements.buttonLeft.style.background = sys_color[3]
-      break;
-    case 'z':
-      elements.buttonA.style.background = sys_color[3]
-      break;
-    case 'x':
-      elements.buttonB.style.background = sys_color[3]
-      break;
-    case 'c':
-      elements.buttonC.style.background = sys_color[3]
-      break;
-    default:
-
   }
 }
 
@@ -710,19 +662,6 @@ function setEvent(i) {
 }
 function togglePlay() {
   state.view = state.view == 'play' ? 'edit' : 'play'
-}
-
-function playNote(synth, state) {
-  for (let i = 1; i < 15; i++) {
-    if (state.tileMap[1][i] > 8) {
-      if (!keyPressed[i]) {
-        keyPressed[i] = true
-        synth.triggerAttackRelease(scaleNote(i), Tone.now(), '8n')
-      }
-    } else {
-      keyPressed[i] = false
-    }
-  }
 }
 
 function clearGrid() {
