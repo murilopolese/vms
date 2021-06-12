@@ -1,7 +1,5 @@
 const n = null
 window.state = {
-  rows: 48,
-  columns: 48,
   data: [],
   interval: 0
 }
