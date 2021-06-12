@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <script src="UPNG.js" charset="utf-8"></script>
+    <script src="framework.js" charset="utf-8"></script>
+    <!-- <script src="colorcode.js" charset="utf-8"></script> -->
+    <script src="app.js" charset="utf-8"></script>
+    <style media="screen">
+      body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        width: 100vw;
+        min-height: 100vh;
+      }
+      #screen {
+        width: 480px;
+        height: 480px;
+        background: #333;
+        cursor: pointer;
+      }
+      #console {
+        width: 480px;
+        height: 100px;
+        background: #ccc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      canvas {
+        margin: auto;
+        width: 100%;
+        height: 100%;
+        image-rendering: -moz-crisp-edges;
+        image-rendering: -webkit-crisp-edges;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="screen"></div>
+    <div id="console"></div>
+    <img src="colorcodetemplate.png" />
+  </body>
+</html>
