@@ -7,6 +7,9 @@
     <script src="framework.js" charset="utf-8"></script>
     <script src="app.js" charset="utf-8"></script>
     <style media="screen">
+      :root {
+        font-size: 1vh;
+      }
       body {
         display: flex;
         flex-direction: column;
@@ -17,18 +20,21 @@
         min-height: 100vh;
       }
       #screen {
-        width: 480px;
-        height: 480px;
+        width: 70vh;
+        height: 70vh;
         background: #333;
         cursor: pointer;
       }
       #console {
-        width: 480px;
-        height: 100px;
+        width: 70vh;
+        height: 10vh;
         background: #ccc;
         display: flex;
         align-items: center;
         justify-content: center;
+      }
+      #cartridges {
+        padding: 2.5vh;
       }
       canvas {
         margin: auto;
@@ -44,6 +50,10 @@
   <body>
     <div id="screen"></div>
     <div id="console"></div>
-    <img src="colorcodetemplate.png" />
+    <div id="cartridges">
+      <img src="colorcodetemplate.png" />
+      <img src="wireworld.png" />
+      <img src="walker.png" />
+    </div>
   </body>
 </html>
