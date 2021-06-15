@@ -77,6 +77,7 @@ let storiesIndex = [
   "burningfractal",
   "tangledforest",
   "rollingpixel",
+  "spring",
 ]
 
 let keysPressed = []

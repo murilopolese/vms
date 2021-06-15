@@ -9,6 +9,30 @@ window.state = {
 
 window.onload = function() {
   render('#console', Console())
+  document.body.addEventListener('keydown', (e) => {
+    switch (e.key.toLowerCase()) {
+      case 'arrowup':
+        executeColumnWith16Rules(6)
+      break
+      case 'arrowright':
+        executeColumnWith16Rules(12)
+      break
+      case 'arrowdown':
+        executeColumnWith16Rules(18)
+      break
+      case 'arrowleft':
+        executeColumnWith16Rules(24)
+      break
+      case 'z':
+        executeColumnWith10Rules(30)
+      break
+      case 'x':
+        executeColumnWith10Rules(36)
+      break
+      default:
+      break
+    }
+  })
 }
 
 function getArrayOfColors(rawData) {
@@ -153,31 +177,6 @@ function Console(state) {
             // Render data on screen
             drawOnCanvas()
             render('#screen', canvas)
-
-            document.body.addEventListener('keydown', (e) => {
-              switch (e.key.toLowerCase()) {
-                case 'arrowup':
-                  executeColumnWith16Rules(6)
-                break
-                case 'arrowright':
-                  executeColumnWith16Rules(12)
-                break
-                case 'arrowdown':
-                  executeColumnWith16Rules(18)
-                break
-                case 'arrowleft':
-                  executeColumnWith16Rules(24)
-                break
-                case 'z':
-                  executeColumnWith10Rules(30)
-                break
-                case 'x':
-                  executeColumnWith10Rules(36)
-                break
-                default:
-                break
-              }
-            })
 
             // apply rules
             clearInterval(window.state.interval)
