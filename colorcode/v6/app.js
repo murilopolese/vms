@@ -78,6 +78,7 @@ let storiesIndex = [
   "tangledforest",
   "rollingpixel",
   "spring",
+  "hilbert_brains",
 ]
 
 let keysPressed = []
