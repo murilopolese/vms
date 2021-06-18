@@ -6,54 +6,17 @@
     <script src="UPNG.js" charset="utf-8"></script>
     <script src="framework.js" charset="utf-8"></script>
     <script src="app.js" charset="utf-8"></script>
-    <style media="screen">
-      :root {
-        font-size: 1vh;
-      }
-      body {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        margin: 0;
-        width: 100vw;
-        min-height: 100vh;
-      }
-      #screen {
-        width: 70vh;
-        height: 70vh;
-        background: #333;
-        cursor: pointer;
-      }
-      #console {
-        width: 70vh;
-        height: 10vh;
-        background: #ccc;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      #cartridges {
-        padding: 2.5vh;
-      }
-      canvas {
-        margin: auto;
-        width: 100%;
-        height: 100%;
-        image-rendering: -moz-crisp-edges;
-        image-rendering: -webkit-crisp-edges;
-        image-rendering: pixelated;
-        image-rendering: crisp-edges;
-      }
-    </style>
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
-    <div id="screen"></div>
-    <div id="console"></div>
+    <div id="container">
+      <div id="screen"></div>
+      <div id="console"></div>
+    </div>
     <div id="cartridges">
-      <img src="colorcodetemplate.png" />
-      <img src="wireworld.png" />
-      <img src="walker.png" />
+      <a href="cartridges/colorcodetemplate.png" download><img src="cartridges/colorcodetemplate.png" /></a>
+      <a href="cartridges/wireworld.png" download><img src="cartridges/wireworld.png" /></a>
+      <a href="cartridges/walker.png" download><img src="cartridges/walker.png" /></a>
     </div>
   </body>
 </html>

@@ -161,33 +161,34 @@ function executeColumnWith10Rules(colIndex) {
 }
 
 function Console(state) {
-  return h('div', { id: 'app' },
+  return h('label', {},
     h('input', {
-        type: 'file',
-        change: (e) => {
-          const file = e.target.files[0]
-          const reader = new FileReader()
-          reader.onload = (e) => {
-            const buff = e.target.result
-            const img  = UPNG.decode(buff)
-            const rawData = new Uint8Array(UPNG.toRGBA8(img)[0])
+      class: 'file',
+      type: 'file',
+      change: (e) => {
+        const file = e.target.files[0]
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const buff = e.target.result
+          const img  = UPNG.decode(buff)
+          const rawData = new Uint8Array(UPNG.toRGBA8(img)[0])
 
-            // get data as float[4] of colors
-            window.state.data = getArrayOfColors(rawData)
-            // Render data on screen
+          // get data as float[4] of colors
+          window.state.data = getArrayOfColors(rawData)
+          // Render data on screen
+          drawOnCanvas()
+          render('#screen', canvas)
+
+          // apply rules
+          clearInterval(window.state.interval)
+          window.state.interval = setInterval(() => {
+            executeColumnWith16Rules(0)
             drawOnCanvas()
-            render('#screen', canvas)
-
-            // apply rules
-            clearInterval(window.state.interval)
-            window.state.interval = setInterval(() => {
-              executeColumnWith16Rules(0)
-              drawOnCanvas()
-            }, 1000/12)
-          }
-
-          reader.readAsArrayBuffer(file)
+          }, 1000/12)
         }
-      })
+
+        reader.readAsArrayBuffer(file)
+      }
+    })
   )
 }
