@@ -1,10 +1,7 @@
 (define *canvas* (dom-element "#canvas"))
-(define *canvas-width* 384)
-(define *canvas-height* 384)
-
 (define *ctx* (js-invoke *canvas* "getContext" "2d"))
 
-
+; Fill an 8x8 list with -1
 (define grid
   (list
     (vector->list (make-vector 8 -1))
@@ -16,8 +13,9 @@
     (vector->list (make-vector 8 -1))
     (vector->list (make-vector 8 -1))
   )
-
 )
+
+; Define the rules
 (define rules
   '( ; Rules
     ( ; TICK RULES
@@ -154,6 +152,7 @@
   )
 )
 
+; Sees if a rule matches grid position
 (define (match rule grid x y)
   (define when (nth rule 0))
   (if (eq? (nth-2d when 1 1) 'n)
@@ -191,6 +190,7 @@
   )
 )
 
+; Applies rule to grid position
 (define (apply rule grid x y)
   (define then (nth rule 1))
   (iterate then
@@ -211,7 +211,8 @@
   )
 )
 
-(define (render grid)
+; Renders grid in text format
+(define (render-text grid)
   (iterate grid
     (lambda (row y)
       (print
@@ -228,6 +229,7 @@
   )
 )
 
+; Renders grid into canvas
 (define (render-canvas grid)
   (js-invoke *ctx* "beginPath")
   (js-invoke *ctx* "moveTo" 0 0)
@@ -236,6 +238,7 @@
   (js-invoke *ctx* "stroke")
 )
 
+; Execute tick rules
 (define (tick)
   ; Create temporary grid
   (define tempGrid (list-copy grid))
@@ -258,13 +261,13 @@
   ; Swap grids
   (set! grid tempGrid)
   (print '=)
-  (render grid)
+  (render-text grid)
   '=
 )
 
+; Draw initial setup on grid
 (set-nth (nth grid 2) 2 3)
 (set-nth (nth grid 2) 3 2)
-
 
 (set-nth (nth grid 3) 2 0)
 (set-nth (nth grid 4) 2 0)
@@ -277,5 +280,6 @@
 
 (set-nth (nth grid 5) 3 0)
 
-(render grid)
+; Renders initial grid
+(render-text grid)
 '=
