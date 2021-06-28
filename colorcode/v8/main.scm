@@ -1,3 +1,10 @@
+(define *canvas* (dom-element "#canvas"))
+(define *canvas-width* 384)
+(define *canvas-height* 384)
+
+(define *ctx* (js-invoke *canvas* "getContext" "2d"))
+
+
 (define grid
   (list
     (vector->list (make-vector 8 -1))
@@ -219,12 +226,17 @@
       )
     )
   )
-  (print '========)
+)
+
+(define (render-canvas grid)
+  (js-invoke *ctx* "beginPath")
+  (js-invoke *ctx* "moveTo" 0 0)
+  (js-invoke *ctx* "lineTo" 160 160)
+  (js-invoke *ctx* "closePath")
+  (js-invoke *ctx* "stroke")
 )
 
 (define (tick)
-  (print 'before)
-  (render grid)
   ; Create temporary grid
   (define tempGrid (list-copy grid))
   ; Iterate rows
@@ -245,8 +257,9 @@
   )
   ; Swap grids
   (set! grid tempGrid)
-  (print 'after)
+  (print '=)
   (render grid)
+  '=
 )
 
 (set-nth (nth grid 2) 2 3)
@@ -264,5 +277,5 @@
 
 (set-nth (nth grid 5) 3 0)
 
-(print '(tick))
-(tick)
+(render grid)
+'=
