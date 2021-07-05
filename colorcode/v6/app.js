@@ -80,6 +80,7 @@ let storiesIndex = [
   "spring",
   "hilbert_brains",
   "waves",
+  "bomber",
 ]
 
 let keysPressed = []
