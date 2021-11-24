@@ -85,6 +85,8 @@ let storiesIndex = [
 
 let keysPressed = []
 
+// P5JS stuff
+
 function preload() {
   for (let i = 0; i < storiesIndex.length; i++) {
     stories.push(
@@ -103,6 +105,7 @@ function setup() {
   background(colors[0])
   renderRuleEditor(state)
   renderStories(state)
+  renderTutorial(state)
 }
 
 function draw() {
@@ -119,18 +122,7 @@ function draw() {
 }
 
 function render(state) {
-  switch (state.view) {
-    case 'play':
-      renderPlay(state)
-      break;
-    case 'edit':
-      renderEdit(state)
-      break;
-    case 'code':
-      renderCode(state)
-      break;
-    default:
-  }
+  renderPlay(state)
 }
 
 function renderPlay(state) {
@@ -150,112 +142,6 @@ function renderPlay(state) {
   }
 }
 
-function renderEdit(state) {
-  renderPlay(state)
-  drawCursor(state)
-}
-
-function renderCode(state) {
-  push()
-  scale(2)
-  let {
-    rows, columns,
-    rules, selectedEvent, selectedRule
-  } = state
-  columns = parseInt(columns/2)
-  rows = parseInt(rows/2)
-  let rule = rules[selectedEvent][selectedRule]
-  let [ when, then ] = rule
-  // first row is for the events
-  for (let x = 0; x < columns; x++) {
-    if (selectedEvent === x) {
-      fill(colors[3])
-      stroke(colors[3])
-    } else {
-      fill(colors[4])
-      stroke(colors[4])
-    }
-    square(x*res, 0, res)
-  }
-  // the next two lines are for rule slots
-  for (let x = 0; x < columns*2; x++) {
-    if (selectedRule === x) {
-      fill(colors[5])
-      stroke(colors[5])
-    } else {
-      fill(colors[6])
-      stroke(colors[6])
-    }
-    square((x%columns)*res, (1+parseInt(x/columns))*res, res)
-  }
-  // the next line is for the available colors
-  for (let y = 0; y < 2; y++) {
-    for (let x = 0; x < columns; x++) {
-      let i = columns*y + x
-      fill(colors[i])
-      stroke(colors[i])
-      square(x*res, (3+y)*res, res)
-    }
-  }
-  // breathe line
-  fill(sys_color[1])
-  stroke(sys_color[1])
-  for (let y = 5; y < rows; y++) {
-    square(3*res, y*res, res)
-    square(4*res, y*res, res)
-  }
-  // when
-  for (let x = 0; x < 3; x++) {
-    for (let y = 0; y < 3; y++) {
-      let value = when[y][x]
-      let color = parseInt(when[y][x])
-      if (value === null || value === '') {
-        fill(sys_color[0])
-        stroke(sys_color[0])
-      } else {
-        fill(colors[color])
-        stroke(colors[color])
-      }
-
-      square(x*res, (5+y)*res, res)
-    }
-  }
-  // then
-  for (let x = 0; x < 3; x++) {
-    for (let y = 0; y < 3; y++) {
-      let value = then[y][x]
-      let color = parseInt(then[y][x])
-      if (value === null || value === '') {
-        fill(sys_color[0])
-        stroke(sys_color[0])
-      } else {
-        fill(colors[color])
-        stroke(colors[color])
-      }
-      square((5+x)*res, (5+y)*res, res)
-    }
-  }
-  drawCursor(state)
-  pop()
-}
-
-function drawCursor(state) {
-  let { cursor, selectedColor } = state
-  let [ x, y ] = cursor
-  let c = color(colors[selectedColor])
-  if (selectedColor === 0) {
-    fill(100)
-    stroke(100)
-  } else {
-    fill(sys_color[0])
-    stroke(sys_color[0])
-  }
-  square(x*res, y*res, res)
-  fill(c)
-  stroke(c)
-  square(x*res, y*res, res)
-}
-
 function update(state) {
   let x = map(mouseX, 0, width, 0, state.columns)
   let y = map(mouseY, 0, height, 0, state.rows)
@@ -266,8 +152,6 @@ function update(state) {
   return state
 }
 
-// EVENT HANDLERS
-
 function keyPressed(e) {
   if (typeof e === 'string') {
     key = e
@@ -277,24 +161,8 @@ function keyPressed(e) {
   if (Number.isFinite(parseInt(key))) {
     state.selectedColor = parseInt(key)
   }
-  switch (state.view) {
-    case 'play':
-      state = handleEventPlay(state, key)
-      break;
-    case 'edit':
-      state = handleEventEdit(state, key)
-      break;
-    case 'code':
-      state = handleEventCode(state, key)
-      break;
-    default:
-  }
-}
-
-function keyReleased(e) {
-  if (window.location.hash === '#record') {
-    if (pilot.steps === null) pilot.steps = []
-    pilot.steps.push(key)
+  if (state.view === 'play') {
+    state = handleEventPlay(state, key)
   }
 }
 
@@ -309,6 +177,13 @@ function mouseDragged() {
     state = setTileMapColor(state)
   }
 }
+
+function windowResized() {
+  let rem = windowWidth/100
+  resizeCanvas(40*rem, 40*rem);
+}
+
+// COLOR "ENGINE"?
 
 function handleEventPlay(state, key) {
   switch (key) {
@@ -329,69 +204,6 @@ function handleEventPlay(state, key) {
       break;
     case 'x':
       state = applyRules(state, 'b')
-      break;
-    case 'c':
-      state = togglePlayView(state)
-      break;
-    default:
-
-  }
-  return state
-}
-
-function handleEventEdit(state, key) {
-  switch (key) {
-    case 'ArrowUp':
-      state = moveCursor(state, 'up')
-      break;
-    case 'ArrowRight':
-      state = moveCursor(state, 'right')
-      break;
-    case 'ArrowDown':
-      state = moveCursor(state, 'down')
-      break;
-    case 'ArrowLeft':
-      state = moveCursor(state, 'left')
-      break;
-    case 'z':
-      state = setTileMapColor(state)
-      break;
-    case 'x':
-      state = eraseTileMapColor(state)
-      break;
-    case 'c':
-      state = togglePlayView(state)
-      break;
-    default:
-
-  }
-  return state
-}
-
-function handleEventCode(state, key) {
-  let { cursor, columns, rows } = state
-  let [ x, y ] = cursor
-  switch (key) {
-    case 'ArrowUp':
-      state = moveCursor(state, 'up')
-      break;
-    case 'ArrowRight':
-      state = moveCursor(state, 'right')
-      break;
-    case 'ArrowDown':
-      state = moveCursor(state, 'down')
-      break;
-    case 'ArrowLeft':
-      state = moveCursor(state, 'left')
-      break;
-    case 'z':
-      if (y == 0) state = selectEvent(state, x)
-      else if (y > 0 && y < 3) state = selectRule(state, x + (y-1)*columns/2)
-      else if (y >= 3 && y <= 4) state = selectColor(state, x+((y-3)*columns/2))
-      else if (y > 4) state = setRuleColor(state, x, y)
-      break;
-    case 'x':
-      if (y > 3) state = eraseRuleColor(state, x, y)
       break;
     case 'c':
       state = togglePlayView(state)
@@ -453,37 +265,6 @@ function matchRule(around, when) {
   return matched
 }
 
-function moveCursor(state, eventName) {
-  let { rows, columns } = state
-  if (state.view === 'code') {
-    rows /= 2
-    columns /= 2
-  }
-  switch (eventName) {
-    case 'up':
-      if (state.cursor[1] === 0) state = toggleEditView(state)
-      state.cursor[0] = (state.cursor[0]) % columns
-      state.cursor[1] = (rows + state.cursor[1] - 1) % rows
-      break;
-    case 'right':
-      if (state.cursor[0] === columns-1) state = toggleEditView(state)
-      state.cursor[0] = (state.cursor[0] + 1) % columns
-      state.cursor[1] = (state.cursor[1]) % rows
-      break;
-    case 'down':
-      if (state.cursor[1] === rows-1) state = toggleEditView(state)
-      state.cursor[0] = (state.cursor[0]) % columns
-      state.cursor[1] = (state.cursor[1] + 1) % rows
-      break;
-    case 'left':
-      if (state.cursor[0] === 0) state = toggleEditView(state)
-      state.cursor[0] = (columns + state.cursor[0] - 1) % columns
-      state.cursor[1] = (state.cursor[1]) % rows
-      break;
-  }
-  return state
-}
-
 function setTileMapColor(state) {
   let { selectedColor, cursor } = state
   let [ x, y ] = cursor
@@ -491,33 +272,8 @@ function setTileMapColor(state) {
   return state
 }
 
-function eraseTileMapColor(state) {
-  let { cursor } = state
-  let [ x, y ] = cursor
-  state.tileMap[y][x] = 0
-  return state
-}
-
-function togglePlayView(state) {
-  if (state.view === 'play') state.view = 'edit'
-  else if (state.view === 'edit') state.view = 'play'
-  else if (state.view === 'code') state.view = 'play'
-  return state
-}
-
-function toggleEditView(state) {
-  if (state.view === 'edit') state.view = 'code'
-  else if (state.view === 'code') state.view = 'edit'
-  return state
-}
-
 function selectEvent(state, i) {
   state.selectedEvent = i
-  return state
-}
-
-function selectRule(state, i) {
-  state.selectedRule = i
   return state
 }
 
@@ -565,10 +321,7 @@ function copyArray(arr) {
   return n
 }
 
-function windowResized() {
-  let rem = windowWidth/100
-  resizeCanvas(40*rem, 40*rem);
-}
+// HTML SCAFFOLDING
 
 function renderRuleEditor(state) {
   let rules = [ "ʘ", "˄", "˃", "˅", "˂", "å", "ß", " " ]
@@ -646,7 +399,6 @@ function renderRuleEditor(state) {
 
   r('#rules', layout)
 }
-
 function renderStories(state) {
   let gallery = storiesIndex.map((name, i) => {
     return h('a', { class: 'story', href: `#story-${i}`},
@@ -654,6 +406,24 @@ function renderStories(state) {
     )
   })
   r('#stories', gallery)
+}
+
+function renderTutorial(state) {
+  const videos = [
+    h('video', {
+      src: 'videos/blinky.webm',
+      controls: true
+    }),
+    h('video', {
+      src: 'videos/falling.webm',
+      controls: true
+    }),
+    h('video', {
+      src: 'videos/movey.webm',
+      controls: true
+    }),
+  ]
+  r('#tutorials', videos)
 }
 
 function setColor(i) {

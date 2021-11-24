@@ -17,7 +17,7 @@ body * {
 body {
   background: #202;
   margin: 0;
-  padding: 5rem;
+  padding: 0 5rem 5rem 5rem;
   min-height: 100vh;
 }
 
@@ -43,7 +43,7 @@ img {
 }
 
 main {
-  margin: auto;
+  margin: calc(100vh - 47.5rem) auto;
   width: 67rem;
   height: 40rem;
   overflow: hidden;
@@ -131,4 +131,17 @@ main {
 #stories .story {
   width: 20%;
   padding: 1rem;
+}
+
+#tutorials {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  margin-top: 5rem;
+}
+
+video {
+  width: 30%;
+  border: 0.25rem solid rgba(0, 0, 0, 0.5);
 }
