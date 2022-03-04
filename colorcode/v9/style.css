@@ -1,0 +1,124 @@
+:root {
+  font-size: 1vw;
+}
+
+body * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  display: block;
+  position: relative;
+  transition: all 0.1s;
+  color: rgba(255, 255, 255, 0.25);
+  font-family: monospace;
+  cursor: pointer;
+}
+
+body {
+  background: #202;
+  margin: 0;
+}
+
+button {
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.5rem;
+  margin: 0;
+  border: none;
+  background: #123;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.9;
+  /* border: solid 1px rgba(255, 255, 255, 0.5); */
+}
+
+img {
+  max-width: 100%;
+}
+
+main {
+  margin: 0 auto;
+  width: 67rem;
+  height: 40rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+}
+
+#sidebar {
+  width: 4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+#rules {
+  padding: 2rem;
+  background: grey;
+  margin-left: 2rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+#rule-selector {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+#rule-selector button.selected {
+  background: none;
+}
+
+#rule-list {
+  height: calc(100% - 4em);
+  overflow-y: scroll;
+}
+
+.rule {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: center;
+  padding: 1rem;
+  align-items: center;
+}
+
+.rule .when,
+.rule .then {
+  display: flex;
+  flex-direction: row;
+}
+
+.rule .then {
+  margin-left: 2rem;
+}
+
+.rule .controls {
+  margin-right: 1rem;
+}
+
+
+#color-code-canvas {
+  background: black;
+  display: flex;
+}
+
+canvas {
+  margin: auto;
+  /* width: 40rem !important;
+  height: 40rem !important; */
+}
+
+#creatures {
+  padding: 1rem;
+}

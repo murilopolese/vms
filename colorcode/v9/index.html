@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>COLORCODE</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="text/javascript" src="p5.min.js"></script>
+    <script type="text/javascript" src="matter.min.js"></script>
+    <script type="text/javascript" src="framework.js"></script>
+    <script type="text/javascript" src="colorcode.js"></script>
+    <script type="text/javascript" src="creature1.js"></script>
+    <script type="text/javascript" src="creature2.js"></script>
+    <script type="text/javascript" src="bodies.js"></script>
+  </head>
+  <body>
+    <section id="creatures"></section>
+    <main>
+      <section id="sidebar">
+        <button onclick="setCurrentGrid(0)">0</button>
+        <button onclick="setCurrentGrid(1)">1</button>
+        <button onclick="setCurrentGrid(2)">2</button>
+        <button onclick="setCurrentGrid(3)">3</button>
+        <button onclick="clearGrid()" style="background: #333">x</button>
+        <button onclick="togglePlay()" style="background: #333">ç</button>
+        <button onclick="setColor(0)" style="background: #000000">0</button>
+        <button onclick="setColor(1)" style="background: #2b335f">1</button>
+        <button onclick="setColor(2)" style="background: #7e2072">2</button>
+        <button onclick="setColor(3)" style="background: #19959c">3</button>
+        <button onclick="setColor(4)" style="background: #8b4852">4</button>
+        <button onclick="setColor(5)" style="background: #395c98">5</button>
+        <button onclick="setColor(6)" style="background: #a9c1ff">6</button>
+        <button onclick="setColor(7)" style="background: #eeeeee">7</button>
+        <button onclick="setColor(8)" style="background: #d4186c">8</button>
+        <button onclick="setColor(9)" style="background: #d38441">9</button>
+        <button onclick="setColor(10)" style="background: #e9c35b">A</button>
+        <button onclick="setColor(11)" style="background: #70c6a9">B</button>
+        <button onclick="setColor(12)" style="background: #7696de">C</button>
+        <button onclick="setColor(13)" style="background: #a3a3a3">D</button>
+        <button onclick="setColor(14)" style="background: #ff9798">E</button>
+        <button onclick="setColor(15)" style="background: #edc7b0">F</button>
+      </section>
+      <section id="color-code-canvas"></section>
+      <section id="rules"></section>
+    </main>
+  </body>
+</html>

@@ -18,8 +18,8 @@ let state = {
   selectedRule: 0,
   selectedEvent: 0,
   view: 'edit',
-  columns: 16,
-  rows: 16
+  columns: 64,
+  rows: 64
 }
 let stories = []
 
