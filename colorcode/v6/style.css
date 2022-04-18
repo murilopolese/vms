@@ -17,8 +17,6 @@ body * {
 body {
   background: #202;
   margin: 0;
-  padding: 0 5rem 5rem 5rem;
-  min-height: 100vh;
 }
 
 button {
@@ -34,34 +32,31 @@ button {
   cursor: pointer;
 }
 
-button:hover {
-  /* background: none; */
-}
-
 img {
   max-width: 100%;
 }
 
 main {
-  margin: calc(100vh - 47.5rem) auto;
+  margin: auto;
   width: 67rem;
   height: 40rem;
   overflow: hidden;
   display: flex;
   flex-direction: row;
+  margin: 5em auto;
 }
 
 #sidebar {
-  width: 4rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
+  margin: 0 1rem;
 }
 
 #rules {
   padding: 2rem;
   background: grey;
-  margin-left: 2rem;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
@@ -76,8 +71,8 @@ main {
   justify-content: center;
 }
 
-#rule-selector button.selected {
-  background: none;
+button.selected {
+  border: solid 1px white;
 }
 
 #rule-list {
@@ -89,23 +84,19 @@ main {
   display: flex;
   flex-direction: row;
   width: 100%;
-  justify-content: center;
+  justify-content: space-around;
   padding: 1rem;
   align-items: center;
+}
+
+.rule div {
+  color: #333;
 }
 
 .rule .when,
 .rule .then {
   display: flex;
   flex-direction: row;
-}
-
-.rule .then {
-  margin-left: 2rem;
-}
-
-.rule .controls {
-  margin-right: 1rem;
 }
 
 
@@ -116,21 +107,18 @@ main {
 
 #canvas canvas {
   margin: auto;
-  /* width: 40rem !important;
-  height: 40rem !important; */
 }
 
 #stories {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
-  width: 50%;
-  margin: 1em auto;
+  margin: auto;
+  width: 90%;
 }
 
 #stories .story {
-  width: 20%;
-  padding: 1rem;
+  width: 10%;
+  padding: 0 0.5rem;
 }
 
 #tutorials {
@@ -138,7 +126,8 @@ main {
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: space-around;
-  margin-top: 5rem;
+  width: 90%;
+  margin: 2.5rem auto;
 }
 
 video {

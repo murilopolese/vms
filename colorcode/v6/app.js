@@ -1,3 +1,4 @@
+const n = null
 const elements = {}
 const sys_color = [30, 50, '#123', '#aaa']
 const colors = [
@@ -11,17 +12,19 @@ let speed = 15
 let res, canvas
 
 let state = {
+  columns: 16,
+  rows: 16,
   tileMap: [],
   rules: [],
+
+  playing: true,
+  tape: n,
+
   cursor: [3, 5],
   selectedColor: 2,
   selectedRule: 0,
-  selectedEvent: 0,
-  view: 'edit',
-  columns: 16,
-  rows: 16
+  selectedEvent: 0
 }
-let stories = []
 
 for (let y = 0; y < state.rows; y++) {
   state.tileMap[y] = []
@@ -47,54 +50,15 @@ for (let events = 0; events < eventNames.length; events++) {
       when[i] = []
       then[i] = []
       for (let j = 0; j < 3; j++) {
-        when[i][j] = null
-        then[i][j] = null
+        when[i][j] = n
+        then[i][j] = n
       }
     }
     state.rules[events][rules] = [when, then]
   }
 }
 
-let storiesIndex = [
-  "animationfinn",
-  "animationmonster",
-  "breakout",
-  "fluidsimulation",
-  "protopacman",
-  "shootkaboom",
-  "wireworld",
-  "fallcolors",
-  "rogue",
-  "stairs",
-  "pixelinvader",
-  "snake",
-  "boulder",
-  "trampoline",
-  "fireinthesky",
-  "rainbow",
-  "pong2",
-  "duel",
-  "burningfractal",
-  "tangledforest",
-  "rollingpixel",
-  "spring",
-  "hilbert_brains",
-  "waves",
-  "bomber",
-]
-
-let keysPressed = []
-
 // P5JS stuff
-
-function preload() {
-  for (let i = 0; i < storiesIndex.length; i++) {
-    stories.push(
-      loadJSON(`stories/${storiesIndex[i]}.json`)
-    )
-  }
-}
-
 function setup() {
   elements.screen = document.querySelector('#canvas')
   let rem = windowWidth/100
@@ -104,24 +68,18 @@ function setup() {
   res = (canvas.width/state.columns)
   background(colors[0])
   renderRuleEditor(state)
-  renderStories(state)
-  renderTutorial(state)
 }
 
 function draw() {
   res = (canvas.width/state.columns)
   background(colors[0])
-  if (window.location.hash.indexOf('#story-') === 0) {
-    let i = parseInt(window.location.hash.split('-')[1])
-    state = Object.assign({}, stories[i])
-    window.location.hash = ''
+  const hash = window.location.hash
+  if (hash.indexOf('#load-') === 0 && state.tape === n) {
+    loadTape(hash)
     renderRuleEditor(state)
+    state.playing = true
   }
   state = update(state)
-  render(state)
-}
-
-function render(state) {
   renderPlay(state)
 }
 
@@ -131,7 +89,7 @@ function renderPlay(state) {
     for (let x = 0; x < tileMap[y].length; x++) {
       let value = tileMap[y][x]
       let color = colors[0]
-      if (value !== null && value !== '') {
+      if (value !== n && value !== '') {
         value = parseInt(value)
         color = colors[value]
       }
@@ -146,7 +104,7 @@ function update(state) {
   let x = map(mouseX, 0, width, 0, state.columns)
   let y = map(mouseY, 0, height, 0, state.rows)
   state.cursor = [ parseInt(x), parseInt(y) ]
-  if (state.view === 'play' && frameCount % 5 == 0) {
+  if (state.playing && frameCount % 5 == 0) {
     state = applyRules(state, 'tick')
   }
   return state
@@ -158,10 +116,11 @@ function keyPressed(e) {
   } else {
     e.preventDefault()
   }
+  console.log(key)
   if (Number.isFinite(parseInt(key))) {
     state.selectedColor = parseInt(key)
   }
-  if (state.view === 'play') {
+  if (state.playing === true) {
     state = handleEventPlay(state, key)
   }
 }
@@ -183,8 +142,85 @@ function windowResized() {
   resizeCanvas(40*rem, 40*rem);
 }
 
-// COLOR "ENGINE"?
+function loadTape(hash) {
+  state.tape = hash.substr(6)
+  for (let i = 0; i < state.tape.length; i++) {
+    let v = state.tape[i]
+    if (i < state.rows*state.columns) {
+      let x = i % state.columns
+      let y = parseInt(i / state.columns)
+      state.tileMap[y][x] = parseInt(v, 16)
+    } else {
+      let readHead = parseInt(i - (state.rows * state.columns))
+      let eventIndex = parseInt(readHead / (32 * 18))
+      let ruleIndex = parseInt(readHead / 18) % 32
+      let sideIndex = parseInt(readHead / 9) % 2
+      let x = readHead % 3
+      let y = parseInt(readHead / 3) % 3
+      if (v === 'n') {
+        state.rules[eventIndex][ruleIndex][sideIndex][y][x] = n
+      } else {
+        state.rules[eventIndex][ruleIndex][sideIndex][y][x] = parseInt(v, 16)
+      }
+    }
+  }
+}
 
+function share() {
+  state.tape = ''
+  for (let y = 0; y < state.rows; y++) {
+    for (let x = 0; x < state.columns; x++) {
+      state.tape += state.tileMap[y][x].toString(16)
+    }
+  }
+  for (let events = 0; events < eventNames.length; events++) {
+    for (let rules = 0; rules < 32; rules++) {
+      if (state.rules[events][rules] === undefined) {
+        state.rules[events][rules] = [
+          [
+            [n,n,n],
+            [n,n,n],
+            [n,n,n]
+          ],
+          [
+            [n,n,n],
+            [n,n,n],
+            [n,n,n]
+          ]
+        ]
+      }
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          if (state.rules[events][rules][0][i][j] === n) {
+            state.tape += 'n'
+          } else {
+            state.tape += state.rules[events][rules][0][i][j].toString(16)
+          }
+        }
+      }
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          if (state.rules[events][rules][1][i][j] === n) {
+            state.tape += 'n'
+          } else {
+            state.tape += state.rules[events][rules][1][i][j].toString(16)
+          }
+        }
+      }
+    }
+  }
+  window.location.hash = `#load-${state.tape}`
+}
+
+function reset() {
+  if (state.tape === n) {
+    clearGrid()
+  } else {
+    state.tape = n
+  }
+}
+
+// COLOR "ENGINE"?
 function handleEventPlay(state, key) {
   switch (key) {
     case 'ArrowUp':
@@ -204,9 +240,6 @@ function handleEventPlay(state, key) {
       break;
     case 'x':
       state = applyRules(state, 'b')
-      break;
-    case 'c':
-      state = togglePlayView(state)
       break;
     default:
 
@@ -239,7 +272,7 @@ function applyRules(state, eventName) {
           if (matched) {
             for (let ly = 0; ly < then.length; ly++) {
               for (let lx = 0; lx < then[ly].length; lx++) {
-                if (then[ly][lx] !== null) {
+                if (then[ly][lx] !== n) {
                   stepTiles[y-1+ly][x-1+lx] = then[ly][lx]
                 }
               }
@@ -257,7 +290,7 @@ function matchRule(around, when) {
   let matched = true
   for (let y = 0; y < when.length; y++) {
     for (let x = 0; x < when[y].length; x++) {
-      if (when[y][x] !== null && when[y][x] !== around[y][x]) {
+      if (when[y][x] !== n && when[y][x] !== around[y][x]) {
         matched = false
       }
     }
@@ -306,7 +339,7 @@ function setRuleColor(state, x, y) {
 }
 
 function eraseRuleColor(state, x, y) {
-  state = setRule(state, x, y, null)
+  state = setRule(state, x, y, n)
   return state
 }
 
@@ -322,9 +355,8 @@ function copyArray(arr) {
 }
 
 // HTML SCAFFOLDING
-
 function renderRuleEditor(state) {
-  let rules = [ "ʘ", "˄", "˃", "˅", "˂", "å", "ß", " " ]
+  let rules = [ "ʘ", "↑", "→", "↓", "←", "z", "x", " " ]
   let ruleSelector = rules.map((rule, i) => {
     return h('li',
       h('button', {
@@ -335,23 +367,18 @@ function renderRuleEditor(state) {
   })
 
   let ruleList = state.rules[state.selectedEvent].map((rule, ruleIndex) => {
-    let controlButtons = [
-      h('button', {}, `˄`),
-      h('button', {}, `x`),
-      h('button', {}, `˅`)
-    ]
     let whenButtons = []
     for (let y = 0; y < 3; y++) {
       let row = []
       for (let x = 0; x < 3; x++) {
         let r = rule[0][x][y]
-        if (r === null) r = ''
+        if (r === n) r = ''
         row.push(
           h('button', {
             style: `background: ${colors[rule[0][x][y]]}`,
             click: () => {
               if (rule[0][x][y] === state.selectedColor) {
-                rule[0][x][y] = null
+                rule[0][x][y] = n
               } else {
                 rule[0][x][y] = state.selectedColor
               }
@@ -367,13 +394,13 @@ function renderRuleEditor(state) {
       let row = []
       for (let x = 0; x < 3; x++) {
         let r = rule[1][x][y]
-        if (r === null) r = ''
+        if (r === n) r = ''
         row.push(
           h('button', {
             style: `background: ${colors[rule[1][x][y]]}`,
             click: () => {
               if (rule[1][x][y] === state.selectedColor) {
-                rule[1][x][y] = null
+                rule[1][x][y] = n
               } else {
                 rule[1][x][y] = state.selectedColor
               }
@@ -386,8 +413,8 @@ function renderRuleEditor(state) {
     }
 
     return h('li', { class: 'rule' }, ...[
-      // h('div', { class: 'controls' }, ...controlButtons),
       h('div', { class: 'when' }, ...whenButtons),
+      h('div', '»'),
       h('div', { class: 'then' }, ...thenButtons)
     ])
   })
@@ -399,32 +426,6 @@ function renderRuleEditor(state) {
 
   r('#rules', layout)
 }
-function renderStories(state) {
-  let gallery = storiesIndex.map((name, i) => {
-    return h('a', { class: 'story', href: `#story-${i}`},
-      h('img', { src: `stories/${name}.png`, alt: name })
-    )
-  })
-  r('#stories', gallery)
-}
-
-function renderTutorial(state) {
-  const videos = [
-    h('video', {
-      src: 'videos/blinky.webm',
-      controls: true
-    }),
-    h('video', {
-      src: 'videos/falling.webm',
-      controls: true
-    }),
-    h('video', {
-      src: 'videos/movey.webm',
-      controls: true
-    }),
-  ]
-  r('#tutorials', videos)
-}
 
 function setColor(i) {
   state = selectColor(state, i)
@@ -435,7 +436,13 @@ function setEvent(i) {
   renderRuleEditor(state)
 }
 function togglePlay() {
-  state.view = state.view == 'play' ? 'edit' : 'play'
+  state.playing = !state.playing
+  let playButton = document.querySelector('#play')
+  if (state.playing) {
+    playButton.classList.add('selected')
+  } else {
+    playButton.classList.remove('selected')
+  }
 }
 
 function clearGrid() {
