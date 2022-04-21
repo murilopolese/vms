@@ -209,7 +209,18 @@ function share() {
       }
     }
   }
-  window.location.hash = `#load-${state.tape}`
+
+  // Clear trailing `null`
+  let lastValue = 0
+  for (let i = 0; i < state.tape.length; i++) {
+    if (state.tape[i] !== 'n') {
+      lastValue = i
+    }
+  }
+
+  console.log(lastValue)
+
+  window.location.hash = `#load-${state.tape.substr(0, lastValue+1)}`
 }
 
 function reset() {
