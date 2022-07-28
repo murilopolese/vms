@@ -43,14 +43,17 @@
   </head>
   <body>
     <button onclick="run()">RUN</button>
-    <textarea name="name">(setStyle (selectAll '*) ('border 'none));
+    <textarea>
+(setStyle (selectAll '*) ('border 'none));
 (setStyle (selectAll '*) ('transition 'all_1s));
 (setStyle (selectOne 'body) ('background 'purple));
 (setStyle (selectOne 'body) ('color 'pink));
 (setStyle (selectOne 'textarea) ('background 'black));
 (setStyle (selectOne 'textarea) ('color 'white));
+(setStyle (selectOne 'button) ('cursor 'pointer));
 (setTimeout ( (lambda () (setStyle (selectOne 'button) ('color 'purple)) ) 'nil ) 500);
-(setTimeout ( (lambda () (setStyle (selectOne 'button) ('background 'pink)) ) 'nil ) 1000);</textarea>
+(setTimeout ( (lambda () (setStyle (selectOne 'button) ('background 'pink)) ) 'nil ) 1000);
+    </textarea>
     <div id="output"></div>
   </body>
 </html>
