@@ -1,6 +1,10 @@
 function evaluate(exp, env) {
   if (is_atom(exp)) {
-    return lookup(exp, env)
+    if (exp[0] === `'`) {
+      return evaluate(['quote', exp.slice(1)], env)
+    } else {
+      return lookup(exp, env)
+    }
   } else if (is_atom(exp[0])) {
     switch(exp[0]) {
       case 'quote': return quote(exp, env); break;
@@ -149,12 +153,18 @@ function label(e, a) {
 
 function selectAll(exp, env) {
   // (selectAll cssQuery)
-  return Array.from( document.querySelectorAll(exp[1]) )
+  return Array.from(
+    document.querySelectorAll(
+      evaluate(exp[1], env)
+    )
+  )
 }
 
 function selectOne(exp, env) {
   // (selectOne cssQuery)
-  return document.querySelector(exp[1])
+  return document.querySelector(
+    evaluate(exp[1], env)
+  )
 }
 
 function setStyle(exp, env) {
@@ -170,14 +180,12 @@ function setStyle(exp, env) {
       let elements = evaluate(exp[1], env)
       elements.forEach((el) => {
         el.style[k] = v
-        console.log(el.style[k])
       })
       return elements.map(el => el.id || el.tagName)
     break;
     case 'selectOne':
       let el = evaluate(exp[1], env)
       el.style[k] = v
-      console.log(el.style[k])
       return el.id || el.tagName
     break;
   }
