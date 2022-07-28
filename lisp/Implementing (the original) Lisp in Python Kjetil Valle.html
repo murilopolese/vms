@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Implementing (the original) Lisp in Python | Kjetil Valle</title>
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <!--[if IE 7]>
+    <link rel="stylesheet" href="/css/font-awesome-ie7.min.css">
+    <![endif]-->
+    <link rel="stylesheet" href="/css/pygments-default.css" />
+    <link rel="stylesheet" href="/css/github.css" />
+
+    <script type="text/javascript">
+        if (window.location.host != 'localhost') {
+          var _gaq = _gaq || [];
+          _gaq.push(['_setAccount', 'UA-26656926-1']);
+          _gaq.push(['_trackPageview']);
+
+          (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+          })();
+        }
+    </script>
+    <style>
+        .header {
+            display: block;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .header .name {
+            font-size: 24px;
+            color: #666;
+        }
+        .header .name i {
+            color: #E3E3E3;
+        }
+        .header .name:hover i {
+            color: #AAA;
+        }
+    </style>
+</head>
+<body>
+    <a href="/index.html" class="header">
+        <span class="name">
+            <i class="angle icon-double-angle-left"></i>
+            Kjetil Valle
+        </span>
+        Sun Nov 10 2013
+    </a>
+    <h1 id="implementing-the-original-lisp-in-python">Implementing (the original) Lisp in Python</h1>
+<p>As programmers we take great pride in keeping up with new developments in libraries, languages and tools (and usually have a lot of fun doing it as well). 
+If we stop learning, we know we&#39;ll soon end up like the Cobol-programmers of today. 
+And this is of course a good thing — there&#39;s always something new and exciting to learn, something on which to sharpen our skills. </p>
+<p>But sometimes I also find that it pays off to take a look at the old, rather than the new.
+It&#39;s good to go back to the roots, to see where it all comes from, and to have look at the fundemental ideas. 
+Today we&#39;ll take a trip back to 1960, to the origins of Lisp as described by John McCarthy in his paper <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.111.8833&amp;rep=rep1&amp;type=pdf">Recursive Functions of Symbolic Expressions and Their Computation by Machine, Part 1</a>. </p>
+<p>There is really nothing novel in this blogpost. 
+The ideas all belonged to McCarthy, but sometimes it&#39;s good to just study the masters. 
+Lets explore the origins of one of our most powerful (family of) programming languages.
+We&#39;ll start by briefly covering the Lisp syntax and semantics, before moving on to an implementation of the language itself in Python.</p>
+<h2 id="a-short-lisp-101">A short Lisp 101</h2>
+<p>Lets start out by explaining the basics of Lisp. If you&#39;re already familiar with this, I urge you to move on to the next section instead.</p>
+<p>I have tried to keep this section brief. If you would like something a bit more elaborate, I really recommend <a href="http://www.paulgraham.com/rootsoflisp.html">The Roots of Lisp</a> by Paul Graham, where he essentially describes McCarthy&#39;s Lisp by example and then show an implementation in Common Lisp.</p>
+<h3 id="a-wee-bit-of-syntax">A wee bit of syntax</h3>
+<p>Lisp programs consists of something called <a href="http://en.wikipedia.org/wiki/S-expression">s-expressions</a>, which stands for <em>symbolic expressions</em>. S-expressions are defined recursively, and consists of either a single <strong>atom</strong> or a <strong>list</strong>, which contains other s-expressions.</p>
+<p>An <em>atom</em> is akin to what many modern languages would call an identifier. It consists of a series of letters or symbols — anything other than parentheses, single quote and whitespace, basically. Examples of atoms would be <code>a</code>, <code>foo/bar!</code> or <code>+</code>.</p>
+<p><em>(Note that we simplify a bit here, compared to McCarthys original description. By limiting atoms to not contain spaces, we eliminating the need for commas separating atoms within lists. In the original Lisp, atoms were also limited to upper case letters, a restriction I don&#39;t see the need to enforce here.)</em></p>
+<p><em>Lists</em> use the parenthesis syntax that have become so iconic to Lisp. A list is expressed by a pair of parentheses enclosing a number of elements. Each element is another s-expression, which might be either an atom or a list. Here are a copule of examples:</p>
+<blockquote>
+<pre><code class="lang-no-highlight">(list of only atoms)
+(another list (with some ((nested)) (lists inside)))</code></pre>
+</blockquote>
+<p>In addition, although it&#39;s actually not in the original Lisp, we include a shorthand syntax <code>&#39;x</code> which is evaluated as <code>(quote x)</code>, where <code>x</code> is any s-expression. This way, <code>&#39;(a b c)</code> is interpreted as<code>(quote (a b c))</code> and similarly, <code>&#39;foo</code> as <code>(quote foo)</code>. We will later see why this turns out to be useful.</p>
+<h3 id="the-basic-semantics">The basic semantics</h3>
+<p>When evaluating an s-expression <code>e</code>, the following rules apply.</p>
+<ul>
+<li>If <code>e</code> is an atom its value is looked up in the environment.</li>
+<li>Otherwise, the expression is a list like <code>(&lt;e0&gt; &lt;e1&gt; … &lt;en&gt;)</code>, which is evaluated as a function application. How this is handled depends on the first element of the list, <code>e0</code>.<ul>
+<li>If <code>e0</code> is the name of one of the builtin (axiomatic) forms, it is evaluated as described below.</li>
+<li>If <code>e0</code> is any other atom, its value is looked up. A new list, with the value of <code>e0</code> replacing the first element is then evaluated. </li>
+<li>If <code>e0</code> is not an atom, but a list of the form <code>(lambda (&lt;a1&gt; … &lt;an&gt;) &lt;body&gt;)</code>, then <code>e1</code> through <code>en</code> is first evaluated. Then <code>body</code> is evaluated in an environment where each of <code>a1</code> through <code>an</code> points to the value of the corresponding <code>en</code>. This constitutes a call to an anonymous function (i.e. a <code>lambda</code> function).</li>
+<li>If <code>e0</code> is of form <code>(label &lt;name&gt; &lt;lambda&gt;)</code> where <code>lambda</code> is a lambda expression like the one above, then a new list with <code>e0</code> replaced by just the <code>lambda</code> is constructed. This list is then evaluated in an environment where <code>name</code> points to <code>e</code>. The <code>label</code> notation is how we solve the problem of defining recursive functions.</li>
+</ul>
+</li>
+</ul>
+<h3 id="the-axiomatic-forms">The axiomatic forms</h3>
+<p>The axiomatic forms are the basis on which the rest of the language rests. They behave as follows:</p>
+<dl>
+    <dt><code>(quote e)</code></dt>
+    <dd>
+        returns <code>e</code> without evaluating it first.
+    </dd>
+
+    <dt><code>(atom e)</code></dt>
+    <dd>
+        evaluates <code>e</code> and returns the atom <code>t</code> if the resulting value is an atom, otherwise <code>f</code> is returned. (Since we have no boolean type in our language, these two atoms are treated as <em>true</em> and <em>false</em>, respectively.)
+    </dd>
+
+    <dt><code>(eq e1 e2)</code></dt> 
+    <dd>
+        evaluates to <code>t</code> if both <code>e1</code> and <code>e2</code> evaluates to the same atom, otherwise <code>f</code>.
+    </dd>
+
+    <dt><code>(car e)</code></dt>
+    <dd>
+        evaluates <code>e</code>, which is expected to give a list, and returns the first element of this list.
+    </dd>
+
+    <dt><code>(cdr e)</code></dt>
+    <dd>
+        is the opposite of <code>car</code>. It returns all but the first element of the list gotten by evaluating <code>e</code>. If the list only holds only one element, <code>cdr</code> instead returns the atom <code>nil</code>.
+    </dd>
+
+    <dt><code>(cons e1 e2)</code></dt>
+    <dd>
+        evaluates both <code>e1</code> and <code>e2</code>, and returns a list constructed with the value of <code>e1</code> as the first element and the value of <code>e2</code> as the rest. If <code>e2</code> evaluates to the atom <code>nil</code>, the list <code>(e1)</code> is returned.
+    </dd>
+
+    <dt><code>(cond (p1 e1) … (pn en))</code></dt>
+    <dd>
+        is the <em>conditional</em> operator. It will evaluate predicates <code>p1</code> to <code>pn</code> in order, until one of them evaluates to <code>t</code>, at which time it will evaluate the corresponding <code>en</code> and return its value.
+    </dd>
+</dl>
+
+<p>The evaluation rules above are, surprisingly, all we need to implement Lisp. In addition, however, I&#39;d like to include another form that isn&#39;t explicitly described by McCarthy, but which is included in Graham&#39;s article. It could strictly speaking be replaced by doing a lot of nested <code>label</code>s but, but this would make things a lot less readable.</p>
+<dl>
+    <dt><code>(defun name (a1 … an) &lt;body&gt;)</code></dt>
+    <dd>
+        is a way to define functions and then later use them outside of the <code>define</code> expression. It does this by adding a new binding to the environment it is itself evluated in: <code>name</code>→<code>(lambda (a1 … an) &lt;body&gt;)</code>.
+    </dd>
+</dl>
+
+
+<h2 id="implementation-in-python">Implementation in Python</h2>
+<p>Now, with the syntax and core semantics of the language outlined, lets look at how to make this happen in Python.</p>
+<h3 id="the-parser">The parser</h3>
+<p>The first step when implementing a language is usually the parser. We need some way to go from programs as strings to some datastructure we can interpret. Such a datastructure is usually called the <a href="http://en.wikipedia.org/wiki/Abstract_syntax_tree">Abstract Syntax Tree</a> (AST) of the program.</p>
+<p>Since Lisp is a language largely without syntax, with parentheses and atoms used for everything, writing the parser is relatively easy and uninteresting. This is not what I want to focus on in this blogpost, so we&#39;ll skip over the details here. Feel free to have a look at <a href="https://github.com/kvalle/root-lisp/blob/master/rootlisp/parser.py">the code for the parser</a> before we move on, if you like.</p>
+<p>The parser works like this:</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">rootlisp.parser</span> <span class="kn">import</span> <span class="n">parse</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">program</span> <span class="o">=</span> <span class="s">&quot;(lambda (x) (cons x (cons x &#39;())))&quot;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ast</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">program</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ast</span>
+<span class="p">[</span><span class="s">&#39;lambda&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;x&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;cons&#39;</span><span class="p">,</span> <span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;cons&#39;</span><span class="p">,</span> <span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;quote&#39;</span><span class="p">,</span> <span class="p">[]]]]]</span>
+</pre></div>
+</code></pre>
+<p>The <code>parse</code> function takes one argument, the program string, and returns the corresponding AST. There is also an opposite function <code>unparse</code> which converts ASTs back into Lisp source strings.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">rootlisp.parser</span> <span class="kn">import</span> <span class="n">unparse</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">unparse</span><span class="p">(</span><span class="n">ast</span><span class="p">)</span>
+<span class="s">&quot;(lambda (x) (cons x (cons x &#39;())))&quot;</span>
+</pre></div>
+</code></pre>
+<h3 id="interpreting">Interpreting</h3>
+<p>Before we move on to evaluating the ASTs, let&#39;s define another useful function, <code>interpret</code>, which we&#39;ll be using to test our language as we go:</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">interpret</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">ast</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">program</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">ast</span><span class="p">,</span> <span class="n">env</span> <span class="k">if</span> <span class="n">env</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="p">[])</span>
+    <span class="k">return</span> <span class="n">unparse</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</code></pre>
+<p>The function combines the power of <code>parse</code> and <code>eval</code>. <code>interpret</code> takes a Lisp program as a string, parses it, and finally evaluates the parsed expression. Since the evaluated expression might be a Lisp data structure (and even valid Lisp code) we &quot;unparse&quot; it back to it&#39;s corresponding source string. This is done to hide our internal ASTs from the user of the Lisp.</p>
+<h3 id="the-evaluator">The Evaluator</h3>
+<p>With parsing out of the way, and armed with the <code>interpret</code> function to test our code, it&#39;s time to have a look at the core of the langage, the <code>eval</code> function. It looks like this:</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">is_atom</span><span class="p">(</span><span class="n">exp</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot;Atomes are represented by strings in our ASTs&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function for evaluating the basic axioms&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">is_atom</span><span class="p">(</span><span class="n">exp</span><span class="p">):</span> <span class="k">return</span> <span class="n">lookup</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">is_atom</span><span class="p">(</span><span class="n">exp</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">exp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;quote&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="n">quote</span><span class="p">(</span><span class="n">exp</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">exp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;atom&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="n">atom</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">exp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;eq&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="n">eq</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">exp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;car&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="n">car</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">exp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;cdr&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="n">cdr</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">exp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;cons&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="n">cons</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">exp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;cond&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="n">cond</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">exp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;defun&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="n">defun</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">call_named_fn</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">exp</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;lambda&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="nb">apply</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">exp</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;label&quot;</span><span class="p">:</span> <span class="k">return</span> <span class="n">label</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+</pre></div>
+</code></pre>
+<p>As you can see, <code>eval</code> takes two arguments <code>exp</code> and <code>env</code>. <code>exp</code> is one of the ASTs returned by <code>parse</code>, <code>env</code> holds a list of associations which represent bindings from atoms to values in the environment. </p>
+<p>We have now covered all the cases we need in order to implement the Lisp. Lets look at the implementation of each in turn. Keep the structure of <code>eval</code> in mind when we go through each case.</p>
+<h3 id="evaluating-atoms">Evaluating atoms</h3>
+<p>The first case we need to cover is when the evaluated expression is an atom. 
+The value of an atom is whatever it is bound to in the environment, so we do a lookup of the atom in <code>env</code>.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">lookup</span><span class="p">(</span><span class="n">atom</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">env</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="n">atom</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span>
+</pre></div>
+</code></pre>
+<p>Lets have a look at how this works in the REPL:</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">rootlisp.lisp</span> <span class="kn">import</span> <span class="n">interpret</span>
+<span class="o">&gt;&gt;&gt;</span> 
+<span class="o">&gt;&gt;&gt;</span> <span class="n">env</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="s">&#39;bar&#39;</span><span class="p">)]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+<span class="s">&#39;bar&#39;</span>
+</pre></div>
+</code></pre>
+<h3 id="evaluating-quote-">Evaluating <code>quote</code></h3>
+<p>The next form is <code>quote</code>, which is incredibly easy to implement: all we need to do is simply to return whatever the argument was, <em>without</em> evaluating it first.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">quote</span><span class="p">(</span><span class="n">exp</span><span class="p">):</span>
+    <span class="c"># (quote e1)</span>
+    <span class="k">return</span> <span class="n">exp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</code></pre>
+<p>And it works as expected:</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="s">&#39;(quote a)&#39;</span><span class="p">)</span>
+<span class="s">&#39;a&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="s">&quot;&#39;a&quot;</span><span class="p">)</span>
+<span class="s">&#39;a&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="s">&quot;&#39;(a (b (c) d))&quot;</span><span class="p">)</span>
+<span class="s">&#39;(a (b (c) d))&#39;</span>
+</pre></div>
+</code></pre>
+<h3 id="evaluating-atom-">Evaluating <code>atom</code></h3>
+<p>The next case, <code>atom</code> determines whether the value of <code>exp</code> is atomic or not.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">atom</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="c"># (atom e1)</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">exp</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">env</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s">&#39;t&#39;</span> <span class="k">if</span> <span class="n">is_atom</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">else</span> <span class="s">&#39;f&#39;</span>
+</pre></div>
+</code></pre>
+<p>Our Lisp does not have any boolean datatypes, so we simply return the atoms <code>t</code> or <code>f</code> depending on whether <code>exp</code> is an atom or not.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="s">&quot;(atom &#39;a)&quot;</span><span class="p">)</span>
+<span class="s">&#39;t&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="s">&quot;(atom &#39;(a b c))&quot;</span><span class="p">)</span>
+<span class="s">&#39;f&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="s">&quot;(atom (atom &#39;a))&quot;</span><span class="p">)</span>
+<span class="s">&#39;t&#39;</span>
+</pre></div>
+</code></pre>
+<h3 id="evaluating-eq-">Evaluating <code>eq</code></h3>
+<p>The <code>eq</code> function is defined as <code>t</code> if the value of its two arguments evaluates to the same atom.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">eq</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="c"># (eq e1 e2)</span>
+    <span class="n">v1</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">exp</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">env</span><span class="p">)</span>
+    <span class="n">v2</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">exp</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">env</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s">&#39;t&#39;</span> <span class="k">if</span> <span class="n">v1</span> <span class="o">==</span> <span class="n">v2</span> <span class="ow">and</span> <span class="n">is_atom</span><span class="p">(</span><span class="n">v1</span><span class="p">)</span> <span class="k">else</span> <span class="s">&#39;f&#39;</span>
+</pre></div>
+</code></pre>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="s">&quot;(eq &#39;a &#39;a)&quot;</span><span class="p">)</span>
+<span class="s">&#39;t&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="s">&quot;(eq &#39;a &#39;b)&quot;</span><span class="p">)</span>
+<span class="s">&#39;f&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="s">&quot;(eq &#39;(a) &#39;(a))&quot;</span><span class="p">)</span>
+<span class="s">&#39;f&#39;</span>
+</pre></div>
+</code></pre>
+<h3 id="evaluating-car-and-cdr-">Evaluating <code>car</code> and <code>cdr</code></h3>
+<p>The <code>car</code> and <code>cdr</code> forms both evaluate the argument, expecting the resulting value to be a list. <code>car</code> returns the first item of the list; <code>cdr</code> returns the rest of the list, i.e. everything but the first element.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">car</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="c"># (car e1)</span>
+    <span class="k">return</span> <span class="nb">eval</span><span class="p">(</span><span class="n">exp</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">env</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">cdr</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="c"># (cdr e1)</span>
+    <span class="n">lst</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">exp</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">env</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s">&#39;nil&#39;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">lst</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+</pre></div>
+</code></pre>
+<p>Notice that if the list contains only one element, <code>cdr</code> return the atom <code>nil</code> which represents the empty list.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="s">&quot;(car &#39;(a b c))&quot;</span><span class="p">)</span>
+<span class="s">&#39;a&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="s">&quot;(cdr &#39;(a b c))&quot;</span><span class="p">)</span>
+<span class="s">&#39;(b c)&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="s">&quot;(cdr &#39;(a))&quot;</span><span class="p">)</span>
+<span class="s">&#39;nil&#39;</span>
+</pre></div>
+</code></pre>
+<h3 id="evaluating-cons-">Evaluating <code>cons</code></h3>
+<p><code>cons</code>, short for <em>construct</em>, returns a list constructed with the value of the first argument as the first element, and the value of the second argument as the rest of the list.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">cons</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="c"># (cons e1 e2)</span>
+    <span class="n">rest</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">exp</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">env</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">rest</span> <span class="o">==</span> <span class="s">&#39;nil&#39;</span><span class="p">:</span>
+        <span class="n">rest</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">eval</span><span class="p">(</span><span class="n">exp</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">env</span><span class="p">)]</span> <span class="o">+</span> <span class="n">rest</span>
+</pre></div>
+</code></pre>
+<p>Once again, we treat <code>nil</code> as the empty list.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="s">&quot;(cons &#39;a &#39;(b c))&quot;</span><span class="p">)</span>
+<span class="s">&#39;(a b c)&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="s">&quot;(cons &#39;a &#39;nil)&quot;</span><span class="p">)</span>
+<span class="s">&#39;(a)&#39;</span>
+</pre></div>
+</code></pre>
+<h3 id="evaluating-cond-">Evaluating <code>cond</code></h3>
+<p>The expressions passed as arguments to <code>cond</code> are all lists of two elements. We evaluate the first element of each of the sublists in turn, until one evaluates to <code>t</code>. When the first <code>t</code> is found, the second element of that list is evaluated and returned.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">cond</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="c"># (cond (p1 e1) (p2 e2) …)</span>
+    <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">exp</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="k">if</span> <span class="nb">eval</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;t&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">eval</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+</pre></div>
+</code></pre>
+<p>Like in McCarthy&#39;s original Lisp, our <code>cond</code> is also undefined for cases where no <code>p</code> expressions evaluate to <code>t</code>.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">program</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">...   (cond ((eq &#39;a &#39;b) &#39;first)</span>
+<span class="s">...         ((atom &#39;a) &#39;second))</span>
+<span class="s">... &quot;&quot;&quot;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="n">program</span><span class="p">)</span>
+<span class="s">&#39;second&#39;</span>
+</pre></div>
+</code></pre>
+<h3 id="evaluating-defun-">Evaluating <code>defun</code></h3>
+<p>As noted above, the <code>defun</code> form isn&#39;t one of those specified by McCarthy, but we include it anyway to make the language easier to use. Evaluating a <code>defun</code> expression simply extends the environment where it is called with a <code>label</code> structure containing a <code>lambda</code>. The evaluation of <code>lambda</code>s and <code>label</code>s is described below.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">defun</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="c"># (defun my-fun (a1 …) body)</span>
+    <span class="n">name</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">body</span> <span class="o">=</span> <span class="n">exp</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">exp</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">exp</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;label&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;lambda&quot;</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">body</span><span class="p">]]</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">name</span>
+</pre></div>
+</code></pre>
+<p>To see what&#39;s happening, lets look at the environment after evaluating a <code>defun</code> form.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">env</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">...     (defun pair (x y) </span>
+<span class="s">...         (cons x (cons y &#39;nil)))</span>
+<span class="s">... &quot;&quot;&quot;</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+<span class="s">&#39;pair&#39;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">env</span>
+<span class="p">[(</span><span class="s">&#39;pair&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;label&#39;</span><span class="p">,</span> <span class="s">&#39;pair&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;lambda&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="s">&#39;y&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;cons&#39;</span><span class="p">,</span> <span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;cons&#39;</span><span class="p">,</span> <span class="s">&#39;y&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;quote&#39;</span><span class="p">,</span> <span class="s">&#39;nil&#39;</span><span class="p">]]]]])]</span>
+</pre></div>
+</code></pre>
+<h3 id="evaluating-function-calls">Evaluating function calls</h3>
+<p>To round of the case when the first element in <code>exp</code> in <code>eval</code> is an atom, we simply look this atom up in the environment, expecting to find a function. A new list with this function as the first element is then evaluated instead.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">call_named_fn</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="c"># (my-fun e1 …)</span>
+    <span class="n">fn</span> <span class="o">=</span> <span class="n">lookup</span><span class="p">(</span><span class="n">exp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">env</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">eval</span><span class="p">([</span><span class="n">fn</span><span class="p">]</span> <span class="o">+</span> <span class="n">exp</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">env</span><span class="p">)</span>
+</pre></div>
+</code></pre>
+<p>Lets try testing this by calling the <code>pair</code> function we defined with <code>defun</code> above.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">env</span>
+<span class="p">[(</span><span class="s">&#39;pair&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;label&#39;</span><span class="p">,</span> <span class="s">&#39;pair&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;lambda&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="s">&#39;y&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;cons&#39;</span><span class="p">,</span> <span class="s">&#39;x&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;cons&#39;</span><span class="p">,</span> <span class="s">&#39;y&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;quote&#39;</span><span class="p">,</span> <span class="s">&#39;nil&#39;</span><span class="p">]]]]])]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="s">&quot;(pair &#39;a &#39;b)&quot;</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+<span class="s">&#39;(a b)&#39;</span>
+</pre></div>
+</code></pre>
+<h3 id="evaluating-lambda-application">Evaluating <code>lambda</code> application</h3>
+<p>In the example above, <code>pair</code> is looked up in the environment and a new s-expression is evaluated. This new expression holds a function rather than an atom as the first element. (Actually, it holds a <code>label</code> with a function, but the <code>label</code> is stripped away in an intermediate step as explained bellow.) Thus, we end up evaluating an expression where the first element looks something like <code>(lambda (list of parameters) body)</code>. The rest of the elements in <code>exp</code> are the arguments to the function. The <code>apply</code> function evaluates such expressions.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="c"># ((lambda (a1 …) body) e1 …)</span>
+    <span class="n">fn</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">exp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">exp</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">body</span> <span class="o">=</span> <span class="n">fn</span>
+    <span class="n">evaluated_args</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="nb">eval</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">env</span><span class="p">),</span> <span class="n">args</span><span class="p">)</span>
+    <span class="n">new_env</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">evaluated_args</span><span class="p">)</span> <span class="o">+</span> <span class="n">env</span>
+    <span class="k">return</span> <span class="nb">eval</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">new_env</span><span class="p">)</span>
+</pre></div>
+</code></pre>
+<p>The first line separates the lambda-expression <code>fn</code> and the arguments. The function <code>fn</code> is then split further into its list of parameters and the body. The arguments are then each evaluated, before they are merged with the corresponding parameters and put into the environment. Finally, the body of the function is evaluated in this new environment.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">program</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">...   ((lambda (x y) (cons x (cdr y)))</span>
+<span class="s">...       &#39;z</span>
+<span class="s">...       &#39;(a b c))</span>
+<span class="s">... &quot;&quot;&quot;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="n">program</span><span class="p">)</span>
+<span class="s">&#39;(z b c)&#39;</span>
+</pre></div>
+</code></pre>
+<h3 id="evaluating-label-application">Evaluating <code>label</code> application</h3>
+<p>The <code>lambda</code> syntax above is fine for defining normal non-recursive functions. It is also expressive enough to make recursive functions using the <a href="http://en.wikipedia.org/wiki/Fixed-point_combinator#Y_combinator">Y-combinator</a>, but for this McCarthy introduces the <code>label</code> notation instead (which arguably is a lot easier to understand).</p>
+<p>This evaluation case considers expressions on the form <code>((label name lambda-expression) arguments)</code>.</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+    <span class="c"># ((label name (lambda (p1 …) body)) arg1 …)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="k">return</span> <span class="nb">eval</span><span class="p">([</span><span class="n">fn</span><span class="p">]</span> <span class="o">+</span> <span class="n">args</span><span class="p">,</span> <span class="p">[(</span><span class="n">f</span><span class="p">,</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span> <span class="o">+</span> <span class="n">a</span><span class="p">)</span>
+</pre></div>
+</code></pre>
+<p>We handle this by extending the environment such that <code>name</code> points to the first element of <code>e</code>, i.e. the <code>label</code> expression. The <code>lambda</code> function is then applied to the rest of the elements of <code>e</code> (the arguments) in this environment, and the value returned.</p>
+<p>Lets se an example:</p>
+<pre><code class="lang-python"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="n">program</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">...   ((label greet (lambda (x) </span>
+<span class="s">...                   (cond ((atom x) </span>
+<span class="s">...                           (cons &#39;hello (cons x &#39;nil)))</span>
+<span class="s">...                         (&#39;t (greet (car x))))))</span>
+<span class="s">...    &#39;(world))</span>
+<span class="s">... &quot;&quot;&quot;</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="n">program</span><span class="p">)</span>
+<span class="s">&#39;(hello world)&#39;</span>
+</pre></div>
+</code></pre>
+<h2 id="taking-the-lisp-for-a-test-run">Taking the Lisp for a test run</h2>
+<p>And with that, we have enough of Lisp implemented to be able to start using it. Lets define a few functions.</p>
+<p>We start with something simple, a function for checking whether lists are empty or not.</p>
+<pre><code class="lang-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nb">null</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">eq</span> <span class="nv">x</span> <span class="ss">&#39;nil</span><span class="p">))</span>
+</pre></div>
+</code></pre>
+<p><code>null</code> returns <code>t</code> for any list that is without elements, and <code>f</code> otherwise.</p>
+<pre><code class="lang-common-lisp"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">null</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">foo</span> <span class="nv">bar</span><span class="p">))</span>
+<span class="nv">f</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">null</span> <span class="p">(</span><span class="nb">cdr</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span><span class="p">)))</span>
+<span class="no">t</span>
+</pre></div>
+</code></pre>
+<p>We might also define the common logical operators.</p>
+<pre><code class="lang-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nb">and</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">cond</span> <span class="p">(</span><span class="nv">x</span> <span class="p">(</span><span class="nb">cond</span> <span class="p">(</span><span class="nv">y</span> <span class="ss">&#39;t</span><span class="p">)</span> <span class="p">(</span><span class="ss">&#39;t</span> <span class="ss">&#39;f</span><span class="p">)))</span>
+          <span class="p">(</span><span class="ss">&#39;t</span> <span class="ss">&#39;f</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nb">or</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">cond</span> <span class="p">(</span><span class="nv">x</span> <span class="ss">&#39;t</span><span class="p">)</span> 
+          <span class="p">(</span><span class="ss">&#39;t</span> <span class="p">(</span><span class="nb">cond</span> <span class="p">(</span><span class="nv">y</span> <span class="ss">&#39;t</span><span class="p">)</span> <span class="p">(</span><span class="ss">&#39;t</span> <span class="ss">&#39;f</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nb">not</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">cond</span> <span class="p">(</span><span class="nv">x</span> <span class="ss">&#39;f</span><span class="p">)</span>
+          <span class="p">(</span><span class="ss">&#39;t</span> <span class="ss">&#39;t</span><span class="p">)))</span>
+</pre></div>
+</code></pre>
+<p>Both <code>and</code>, <code>or</code> and <code>not</code> works as one would expect.</p>
+<pre><code class="lang-common-lisp"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">not</span> <span class="ss">&#39;f</span><span class="p">)</span>
+<span class="no">t</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">and</span> <span class="ss">&#39;t</span> <span class="p">(</span><span class="nb">or</span> <span class="ss">&#39;t</span> <span class="ss">&#39;f</span><span class="p">)))</span>
+<span class="nv">f</span>
+</pre></div>
+</code></pre>
+<p>Further we can define some functions working on lists. First <code>append</code>, which takes two lists as arguments, returning their concatination.</p>
+<pre><code class="lang-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nb">append</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">cond</span> <span class="p">((</span><span class="nb">null</span> <span class="nv">x</span><span class="p">)</span> <span class="nv">y</span><span class="p">)</span>
+          <span class="p">(</span><span class="ss">&#39;t</span> <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">append</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">x</span><span class="p">)</span> <span class="nv">y</span><span class="p">)))))</span>
+</pre></div>
+</code></pre>
+<p>A couple of tests shows that it works:</p>
+<pre><code class="lang-common-lisp"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">append</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">))</span>
+<span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">append</span> <span class="ss">&#39;nil</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span><span class="p">))</span>
+<span class="p">(</span><span class="nv">a</span> <span class="nv">b</span><span class="p">)</span>
+</pre></div>
+</code></pre>
+<p>Another useful function is <code>zip</code>, which takes two lists as arguments, returning a list of pairs where each pair consists of the corresponding elements from each of the argument lists. </p>
+<pre><code class="lang-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nv">pair</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">cons</span> <span class="nv">x</span> <span class="p">(</span><span class="nb">cons</span> <span class="nv">y</span> <span class="ss">&#39;nil</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">zip</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">cond</span> <span class="p">((</span><span class="nb">and</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">null</span> <span class="nv">y</span><span class="p">))</span> <span class="ss">&#39;nil</span><span class="p">)</span>
+        <span class="p">((</span><span class="nb">and</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">atom</span> <span class="nv">x</span><span class="p">))</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">atom</span> <span class="nv">y</span><span class="p">)))</span>
+         <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nv">pair</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">y</span><span class="p">))</span>
+               <span class="p">(</span><span class="nv">zip</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">y</span><span class="p">))))))</span>
+</pre></div>
+</code></pre>
+<p>The helper function <code>pair</code> is simply used as a convenience for creating lists of two elements.</p>
+<pre><code class="lang-common-lisp"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nv">zip</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">))</span>
+<span class="p">((</span><span class="nv">a</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nv">b</span> <span class="mi">2</span><span class="p">)</span> <span class="p">(</span><span class="nv">c</span> <span class="mi">3</span><span class="p">))</span>
+</pre></div>
+</code></pre>
+<h2 id="completing-the-language">Completing the language</h2>
+<p>These functions are all nice and well, but one thing is still lacking. 
+One of the central concepts in Lisp is that <em>code is data</em>, and vice versa.
+We already have <code>quote</code> which enables us to convert code into lists, but we still need some way to evaluate lists as if they were Lisp code again. </p>
+<p>Our Lisp cannot do this yet. But, fortunately, we have enough pieces to be able to implement it within the Lisp itself!</p>
+<p>Before we go on, lets just define a few shorthand notations for working with combinations of <code>car</code> and <code>cdr</code>. These will help keep the code a bit more concise and readable as we move on.</p>
+<pre><code class="lang-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nb">caar</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span> <span class="p">(</span><span class="nb">car</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">)))</span>
+<span class="p">(</span><span class="nb">defun</span> <span class="nb">cddr</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span> <span class="p">(</span><span class="nb">cdr</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">)))</span>
+<span class="p">(</span><span class="nb">defun</span> <span class="nb">cadr</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span> <span class="p">(</span><span class="nb">car</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">)))</span>
+<span class="p">(</span><span class="nb">defun</span> <span class="nb">cdar</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span> <span class="p">(</span><span class="nb">cdr</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">)))</span>
+<span class="p">(</span><span class="nb">defun</span> <span class="nb">cadar</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span> <span class="p">(</span><span class="nb">car</span> <span class="p">(</span><span class="nb">cdr</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">))))</span>
+<span class="p">(</span><span class="nb">defun</span> <span class="nb">caddr</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span> <span class="p">(</span><span class="nb">car</span> <span class="p">(</span><span class="nb">cdr</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">))))</span>
+<span class="p">(</span><span class="nb">defun</span> <span class="nb">caddar</span> <span class="p">(</span><span class="nv">lst</span><span class="p">)</span> <span class="p">(</span><span class="nb">car</span> <span class="p">(</span><span class="nb">cdr</span> <span class="p">(</span><span class="nb">cdr</span> <span class="p">(</span><span class="nb">car</span> <span class="nv">lst</span><span class="p">)))))</span>
+</pre></div>
+</code></pre>
+<p>Next, we need a function to help us look up values from an environment.</p>
+<pre><code class="lang-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nb">assoc</span> <span class="p">(</span><span class="nv">var</span> <span class="nv">lst</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">cond</span> <span class="p">((</span><span class="nb">eq</span> <span class="p">(</span><span class="nb">caar</span> <span class="nv">lst</span><span class="p">)</span> <span class="nv">var</span><span class="p">)</span> <span class="p">(</span><span class="nb">cadar</span> <span class="nv">lst</span><span class="p">))</span>
+        <span class="p">(</span><span class="ss">&#39;t</span> <span class="p">(</span><span class="nb">assoc</span> <span class="nv">var</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">lst</span><span class="p">)))))</span>
+</pre></div>
+</code></pre>
+<p><code>assoc</code> takes two arguments: the variable we wish to look up, <code>var</code>, and a list of bindings, <code>lst</code>. The bindings in <code>lst</code> are lists of two elements, and <code>assoc</code> simply returns the second element of the first pair where the first element is the same as <code>var</code>.</p>
+<pre><code class="lang-common-lisp"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">assoc</span> <span class="ss">&#39;x</span> <span class="o">&#39;</span><span class="p">((</span><span class="nv">x</span> <span class="nv">a</span><span class="p">)</span> <span class="p">(</span><span class="nv">y</span> <span class="nv">b</span><span class="p">)))</span>
+<span class="nv">a</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">assoc</span> <span class="ss">&#39;y</span> <span class="o">&#39;</span><span class="p">((</span><span class="nv">x</span> <span class="nv">a</span><span class="p">)</span> <span class="p">(</span><span class="nv">y</span> <span class="nv">b</span><span class="p">)))</span>
+<span class="nv">b</span>
+</pre></div>
+</code></pre>
+<p>With this, we are ready to implement the <code>eval</code> function:</p>
+<pre><code class="lang-common-lisp"><div class="highlight"><pre><span class="p">(</span><span class="nb">defun</span> <span class="nb">eval</span> <span class="p">(</span><span class="nb">exp</span> <span class="nv">env</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">cond</span>
+    <span class="p">((</span><span class="nb">atom</span> <span class="nb">exp</span><span class="p">)</span> <span class="p">(</span><span class="nb">assoc</span> <span class="nb">exp</span> <span class="nv">env</span><span class="p">))</span>
+    <span class="p">((</span><span class="nb">atom</span> <span class="p">(</span><span class="nb">car</span> <span class="nb">exp</span><span class="p">))</span>
+     <span class="p">(</span><span class="nb">cond</span>
+       <span class="p">((</span><span class="nb">eq</span> <span class="p">(</span><span class="nb">car</span> <span class="nb">exp</span><span class="p">)</span> <span class="ss">&#39;quote</span><span class="p">)</span> <span class="p">(</span><span class="nb">cadr</span> <span class="nb">exp</span><span class="p">))</span>
+       <span class="p">((</span><span class="nb">eq</span> <span class="p">(</span><span class="nb">car</span> <span class="nb">exp</span><span class="p">)</span> <span class="ss">&#39;atom</span><span class="p">)</span>  <span class="p">(</span><span class="nb">atom</span> <span class="p">(</span><span class="nb">eval</span> <span class="p">(</span><span class="nb">cadr</span> <span class="nb">exp</span><span class="p">)</span> <span class="nv">env</span><span class="p">)))</span>
+       <span class="p">((</span><span class="nb">eq</span> <span class="p">(</span><span class="nb">car</span> <span class="nb">exp</span><span class="p">)</span> <span class="ss">&#39;eq</span><span class="p">)</span>    <span class="p">(</span><span class="nb">eq</span>   <span class="p">(</span><span class="nb">eval</span> <span class="p">(</span><span class="nb">cadr</span> <span class="nb">exp</span><span class="p">)</span> <span class="nv">env</span><span class="p">)</span>
+                                    <span class="p">(</span><span class="nb">eval</span> <span class="p">(</span><span class="nb">caddr</span> <span class="nb">exp</span><span class="p">)</span> <span class="nv">env</span><span class="p">)))</span>
+       <span class="p">((</span><span class="nb">eq</span> <span class="p">(</span><span class="nb">car</span> <span class="nb">exp</span><span class="p">)</span> <span class="ss">&#39;car</span><span class="p">)</span>   <span class="p">(</span><span class="nb">car</span>  <span class="p">(</span><span class="nb">eval</span> <span class="p">(</span><span class="nb">cadr</span> <span class="nb">exp</span><span class="p">)</span> <span class="nv">env</span><span class="p">)))</span>
+       <span class="p">((</span><span class="nb">eq</span> <span class="p">(</span><span class="nb">car</span> <span class="nb">exp</span><span class="p">)</span> <span class="ss">&#39;cdr</span><span class="p">)</span>   <span class="p">(</span><span class="nb">cdr</span>  <span class="p">(</span><span class="nb">eval</span> <span class="p">(</span><span class="nb">cadr</span> <span class="nb">exp</span><span class="p">)</span> <span class="nv">env</span><span class="p">)))</span>
+       <span class="p">((</span><span class="nb">eq</span> <span class="p">(</span><span class="nb">car</span> <span class="nb">exp</span><span class="p">)</span> <span class="ss">&#39;cons</span><span class="p">)</span>  <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nb">eval</span> <span class="p">(</span><span class="nb">cadr</span> <span class="nb">exp</span><span class="p">)</span> <span class="nv">env</span><span class="p">)</span>
+                                    <span class="p">(</span><span class="nb">eval</span> <span class="p">(</span><span class="nb">caddr</span> <span class="nb">exp</span><span class="p">)</span> <span class="nv">env</span><span class="p">)))</span>
+       <span class="p">((</span><span class="nb">eq</span> <span class="p">(</span><span class="nb">car</span> <span class="nb">exp</span><span class="p">)</span> <span class="ss">&#39;cond</span><span class="p">)</span>  <span class="p">(</span><span class="nv">evcon</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nb">exp</span><span class="p">)</span> <span class="nv">env</span><span class="p">))</span>
+       <span class="p">(</span><span class="ss">&#39;t</span> <span class="p">(</span><span class="nb">eval</span> <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nb">assoc</span> <span class="p">(</span><span class="nb">car</span> <span class="nb">exp</span><span class="p">)</span> <span class="nv">env</span><span class="p">)</span>
+                        <span class="p">(</span><span class="nb">cdr</span> <span class="nb">exp</span><span class="p">))</span>
+                  <span class="nv">env</span><span class="p">))))</span>
+    <span class="p">((</span><span class="nb">eq</span> <span class="p">(</span><span class="nb">caar</span> <span class="nb">exp</span><span class="p">)</span> <span class="ss">&#39;label</span><span class="p">)</span>
+     <span class="p">(</span><span class="nb">eval</span> <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nb">caddar</span> <span class="nb">exp</span><span class="p">)</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nb">exp</span><span class="p">))</span>
+            <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nv">pair</span> <span class="p">(</span><span class="nb">cadar</span> <span class="nb">exp</span><span class="p">)</span> <span class="p">(</span><span class="nb">car</span> <span class="nb">exp</span><span class="p">))</span> <span class="nv">env</span><span class="p">)))</span>
+    <span class="p">((</span><span class="nb">eq</span> <span class="p">(</span><span class="nb">caar</span> <span class="nb">exp</span><span class="p">)</span> <span class="ss">&#39;lambda</span><span class="p">)</span>
+     <span class="p">(</span><span class="nb">eval</span> <span class="p">(</span><span class="nb">caddar</span> <span class="nb">exp</span><span class="p">)</span>
+            <span class="p">(</span><span class="nb">append</span> <span class="p">(</span><span class="nv">zip</span> <span class="p">(</span><span class="nb">cadar</span> <span class="nb">exp</span><span class="p">)</span> <span class="p">(</span><span class="nv">evlis</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nb">exp</span><span class="p">)</span> <span class="nv">env</span><span class="p">))</span>
+                     <span class="nv">env</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">evcon</span> <span class="p">(</span><span class="nv">c</span> <span class="nv">env</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">cond</span> <span class="p">((</span><span class="nb">eval</span> <span class="p">(</span><span class="nb">caar</span> <span class="nv">c</span><span class="p">)</span> <span class="nv">env</span><span class="p">)</span>
+         <span class="p">(</span><span class="nb">eval</span> <span class="p">(</span><span class="nb">cadar</span> <span class="nv">c</span><span class="p">)</span> <span class="nv">env</span><span class="p">))</span>
+        <span class="p">(</span><span class="ss">&#39;t</span> <span class="p">(</span><span class="nv">evcon</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">c</span><span class="p">)</span> <span class="nv">env</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nb">defun</span> <span class="nv">evlis</span> <span class="p">(</span><span class="nv">m</span> <span class="nv">env</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">cond</span> <span class="p">((</span><span class="nb">null</span> <span class="nv">m</span><span class="p">)</span> <span class="ss">&#39;nil</span><span class="p">)</span>
+        <span class="p">(</span><span class="ss">&#39;t</span> <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nb">eval</span>  <span class="p">(</span><span class="nb">car</span> <span class="nv">m</span><span class="p">)</span> <span class="nv">env</span><span class="p">)</span>
+                  <span class="p">(</span><span class="nv">evlis</span> <span class="p">(</span><span class="nb">cdr</span> <span class="nv">m</span><span class="p">)</span> <span class="nv">env</span><span class="p">)))))</span>
+</pre></div>
+</code></pre>
+<p>As you see, the Lisp version of <code>eval</code> is very similar to the one we implemented in Python, both in structure and how it works. Lets see a couple of examples.</p>
+<pre><code class="lang-common-lisp"><div class="highlight"><pre><span class="nb">&gt;</span> <span class="p">(</span><span class="nb">eval</span> <span class="o">&#39;</span><span class="p">(</span><span class="nb">cons</span> <span class="nv">x</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">b</span> <span class="nv">c</span><span class="p">))</span> <span class="o">&#39;</span><span class="p">((</span><span class="nv">x</span> <span class="nv">a</span><span class="p">)</span> <span class="p">(</span><span class="nv">y</span> <span class="nv">b</span><span class="p">)))</span>
+<span class="p">(</span><span class="nv">a</span> <span class="nv">b</span> <span class="nv">c</span><span class="p">)</span>
+<span class="nb">&gt;</span> <span class="p">(</span><span class="nb">eval</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">f</span> <span class="o">&#39;</span><span class="p">(</span><span class="nv">bar</span> <span class="nv">baz</span><span class="p">))</span> <span class="o">&#39;</span><span class="p">((</span><span class="nv">f</span> <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">cons</span> <span class="ss">&#39;foo</span> <span class="nv">x</span><span class="p">)))))</span>
+<span class="p">(</span><span class="nv">foo</span> <span class="nv">bar</span> <span class="nv">baz</span><span class="p">)</span>
+</pre></div>
+</code></pre>
+<p>We have the Lisp implemented in terms of the Lisp itself.</p>
+<h2 id="summary">Summary</h2>
+<p>We have now seen a full implementation of the original Lisp, and the final result is, of course, <a href="https://github.com/kvalle/root-lisp">available on github</a>.</p>
+<p>The core of the language is pretty small. Given only a handful of axiomatic forms, implemented in Python, we were actually able to implement the rest of the language in itself. This implementation even included an <code>eval</code> function, able to interpret any new Lisp code (which makes this an example of a <a href="http://en.wikipedia.org/wiki/Meta-circular_evaluator">meta-circular interpreter</a>).</p>
+<p>Of course, while being a neat little language, our Lisp is missing a lot of features we expect in programming languages today. For example, it has no side effects (no IO), no types other than atoms (e.g. no numbers, strings, etc), no error handling, and it has dynamic rather than lexical scoping. The behaviour is also undefined for incorrect programs, and as an effect of this the error messages (which would bubble up from Python) can be rather strange and uninformative at times.</p>
+<p>Most of this could easily be rectified, though. Either from within the Lisp itself, or by changing the Python implementation. To learn about some of the improvements that could be made, notably <em>lexical scoping</em> and <em>mutable state</em>, I reccomend to have a look at <a href="http://18.7.29.232/handle/1721.1/6094">The Art of the Interpreter</a> by Steele and Sussman.</p>
+<p>I hope this blogpost have peaked your interest in how programming languages work, and that you find the implementation of Lisp as delightful as I do.</p>
+
+</body>
+</html>

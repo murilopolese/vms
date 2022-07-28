@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>MURILISP</title>
+    <style media="screen">
+      * {
+        box-sizing: border-box;
+      }
+      html, body {
+        width: 100%;
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      textarea {
+        width: 100%;
+        height: 80%;
+        outline: none;
+      }
+    </style>
+    <script src="baby-lisper.js" charset="utf-8"></script>
+    <script src="lisp.js" charset="utf-8"></script>
+    <script type="text/javascript">
+      function run() {
+        output.innerHTML = ``
+        let textarea = document.querySelector('textarea')
+        let env = []
+        let expressions = textarea.value.split(';')
+        expressions = expressions.filter((program) => !!program.trim())
+
+        expressions.forEach((program) => {
+          let result = interpret(program, env)
+          let output = document.querySelector('#output')
+          output.innerHTML += `<pre>${result}</pre>`
+        })
+
+      }
+    </script>
+  </head>
+  <body>
+    <button onclick="run()">RUN</button>
+    <textarea name="name"></textarea>
+    <div id="output"></div>
+  </body>
+</html>
