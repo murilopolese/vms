@@ -9,20 +9,6 @@
     <![endif]-->
     <link rel="stylesheet" href="/css/pygments-default.css" />
     <link rel="stylesheet" href="/css/github.css" />
-
-    <script type="text/javascript">
-        if (window.location.host != 'localhost') {
-          var _gaq = _gaq || [];
-          _gaq.push(['_setAccount', 'UA-26656926-1']);
-          _gaq.push(['_trackPageview']);
-
-          (function() {
-            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-          })();
-        }
-    </script>
     <style>
         .header {
             display: block;
@@ -51,14 +37,14 @@
         Sun Nov 10 2013
     </a>
     <h1 id="implementing-the-original-lisp-in-python">Implementing (the original) Lisp in Python</h1>
-<p>As programmers we take great pride in keeping up with new developments in libraries, languages and tools (and usually have a lot of fun doing it as well). 
-If we stop learning, we know we&#39;ll soon end up like the Cobol-programmers of today. 
+<p>As programmers we take great pride in keeping up with new developments in libraries, languages and tools (and usually have a lot of fun doing it as well).
+If we stop learning, we know we&#39;ll soon end up like the Cobol-programmers of today.
 And this is of course a good thing — there&#39;s always something new and exciting to learn, something on which to sharpen our skills. </p>
 <p>But sometimes I also find that it pays off to take a look at the old, rather than the new.
-It&#39;s good to go back to the roots, to see where it all comes from, and to have look at the fundemental ideas. 
+It&#39;s good to go back to the roots, to see where it all comes from, and to have look at the fundemental ideas.
 Today we&#39;ll take a trip back to 1960, to the origins of Lisp as described by John McCarthy in his paper <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.111.8833&amp;rep=rep1&amp;type=pdf">Recursive Functions of Symbolic Expressions and Their Computation by Machine, Part 1</a>. </p>
-<p>There is really nothing novel in this blogpost. 
-The ideas all belonged to McCarthy, but sometimes it&#39;s good to just study the masters. 
+<p>There is really nothing novel in this blogpost.
+The ideas all belonged to McCarthy, but sometimes it&#39;s good to just study the masters.
 Lets explore the origins of one of our most powerful (family of) programming languages.
 We&#39;ll start by briefly covering the Lisp syntax and semantics, before moving on to an implementation of the language itself in Python.</p>
 <h2 id="a-short-lisp-101">A short Lisp 101</h2>
@@ -99,7 +85,7 @@ We&#39;ll start by briefly covering the Lisp syntax and semantics, before moving
         evaluates <code>e</code> and returns the atom <code>t</code> if the resulting value is an atom, otherwise <code>f</code> is returned. (Since we have no boolean type in our language, these two atoms are treated as <em>true</em> and <em>false</em>, respectively.)
     </dd>
 
-    <dt><code>(eq e1 e2)</code></dt> 
+    <dt><code>(eq e1 e2)</code></dt>
     <dd>
         evaluates to <code>t</code> if both <code>e1</code> and <code>e2</code> evaluates to the same atom, otherwise <code>f</code>.
     </dd>
@@ -164,7 +150,7 @@ We&#39;ll start by briefly covering the Lisp syntax and semantics, before moving
 <p>The function combines the power of <code>parse</code> and <code>eval</code>. <code>interpret</code> takes a Lisp program as a string, parses it, and finally evaluates the parsed expression. Since the evaluated expression might be a Lisp data structure (and even valid Lisp code) we &quot;unparse&quot; it back to it&#39;s corresponding source string. This is done to hide our internal ASTs from the user of the Lisp.</p>
 <h3 id="the-evaluator">The Evaluator</h3>
 <p>With parsing out of the way, and armed with the <code>interpret</code> function to test our code, it&#39;s time to have a look at the core of the langage, the <code>eval</code> function. It looks like this:</p>
-<pre><code class="lang-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">is_atom</span><span class="p">(</span><span class="n">exp</span><span class="p">):</span> 
+<pre><code class="lang-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">is_atom</span><span class="p">(</span><span class="n">exp</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Atomes are represented by strings in our ASTs&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
 
@@ -188,7 +174,7 @@ We&#39;ll start by briefly covering the Lisp syntax and semantics, before moving
 <p>As you can see, <code>eval</code> takes two arguments <code>exp</code> and <code>env</code>. <code>exp</code> is one of the ASTs returned by <code>parse</code>, <code>env</code> holds a list of associations which represent bindings from atoms to values in the environment. </p>
 <p>We have now covered all the cases we need in order to implement the Lisp. Lets look at the implementation of each in turn. Keep the structure of <code>eval</code> in mind when we go through each case.</p>
 <h3 id="evaluating-atoms">Evaluating atoms</h3>
-<p>The first case we need to cover is when the evaluated expression is an atom. 
+<p>The first case we need to cover is when the evaluated expression is an atom.
 The value of an atom is whatever it is bound to in the environment, so we do a lookup of the atom in <code>env</code>.</p>
 <pre><code class="lang-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">lookup</span><span class="p">(</span><span class="n">atom</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">env</span><span class="p">:</span>
@@ -198,7 +184,7 @@ The value of an atom is whatever it is bound to in the environment, so we do a l
 </code></pre>
 <p>Lets have a look at how this works in the REPL:</p>
 <pre><code class="lang-python"><div class="highlight"><pre><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span> <span class="nn">rootlisp.lisp</span> <span class="kn">import</span> <span class="n">interpret</span>
-<span class="o">&gt;&gt;&gt;</span> 
+<span class="o">&gt;&gt;&gt;</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">env</span> <span class="o">=</span> <span class="p">[(</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="s">&#39;bar&#39;</span><span class="p">)]</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">interpret</span><span class="p">(</span><span class="s">&#39;foo&#39;</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
 <span class="s">&#39;bar&#39;</span>
@@ -410,7 +396,7 @@ The value of an atom is whatever it is bound to in the environment, so we do a l
           <span class="p">(</span><span class="ss">&#39;t</span> <span class="ss">&#39;f</span><span class="p">)))</span>
 
 <span class="p">(</span><span class="nb">defun</span> <span class="nb">or</span> <span class="p">(</span><span class="nv">x</span> <span class="nv">y</span><span class="p">)</span>
-    <span class="p">(</span><span class="nb">cond</span> <span class="p">(</span><span class="nv">x</span> <span class="ss">&#39;t</span><span class="p">)</span> 
+    <span class="p">(</span><span class="nb">cond</span> <span class="p">(</span><span class="nv">x</span> <span class="ss">&#39;t</span><span class="p">)</span>
           <span class="p">(</span><span class="ss">&#39;t</span> <span class="p">(</span><span class="nb">cond</span> <span class="p">(</span><span class="nv">y</span> <span class="ss">&#39;t</span><span class="p">)</span> <span class="p">(</span><span class="ss">&#39;t</span> <span class="ss">&#39;f</span><span class="p">)))))</span>
 
 <span class="p">(</span><span class="nb">defun</span> <span class="nb">not</span> <span class="p">(</span><span class="nv">x</span><span class="p">)</span>
@@ -455,7 +441,7 @@ The value of an atom is whatever it is bound to in the environment, so we do a l
 </pre></div>
 </code></pre>
 <h2 id="completing-the-language">Completing the language</h2>
-<p>These functions are all nice and well, but one thing is still lacking. 
+<p>These functions are all nice and well, but one thing is still lacking.
 One of the central concepts in Lisp is that <em>code is data</em>, and vice versa.
 We already have <code>quote</code> which enables us to convert code into lists, but we still need some way to evaluate lists as if they were Lisp code again. </p>
 <p>Our Lisp cannot do this yet. But, fortunately, we have enough pieces to be able to implement it within the Lisp itself!</p>
