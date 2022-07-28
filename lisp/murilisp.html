@@ -1,4 +1,4 @@
-<!-- Saved from local source at 2022-07-28T09:05:30Z using monolith v2.6.1 -->
+<!-- Saved from local source at 2022-07-28T09:17:32Z using monolith v2.6.1 -->
 <!DOCTYPE html><html lang="en" dir="ltr"><head>
     <meta charset="utf-8">
     <title>MURILISP</title>
@@ -42,14 +42,16 @@
   </head>
   <body>
     <button onclick="run()">RUN</button>
-    <textarea name="name">(setStyle (selectAll '*) ('border 'none));
+    <textarea>(setStyle (selectAll '*) ('border 'none));
 (setStyle (selectAll '*) ('transition 'all_1s));
 (setStyle (selectOne 'body) ('background 'purple));
 (setStyle (selectOne 'body) ('color 'pink));
 (setStyle (selectOne 'textarea) ('background 'black));
 (setStyle (selectOne 'textarea) ('color 'white));
+(setStyle (selectOne 'button) ('cursor 'pointer));
 (setTimeout ( (lambda () (setStyle (selectOne 'button) ('color 'purple)) ) 'nil ) 500);
-(setTimeout ( (lambda () (setStyle (selectOne 'button) ('background 'pink)) ) 'nil ) 1000);</textarea>
+(setTimeout ( (lambda () (setStyle (selectOne 'button) ('background 'pink)) ) 'nil ) 1000);
+    </textarea>
     <div id="output"></div>
   
 
