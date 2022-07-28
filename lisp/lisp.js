@@ -20,6 +20,7 @@ function evaluate(exp, env) {
       case 'selectOne': return selectOne(exp, env); break;
       case 'setStyle': return setStyle(exp, env); break;
       case 'setInterval': return _setInterval(exp, env); break;
+      case 'setTimeout': return _setTimeout(exp, env); break;
 
       default: return call_named_fn(exp, env);
     }
@@ -194,6 +195,13 @@ function setStyle(exp, env) {
 function _setInterval(exp, env) {
   // (setInterval lambda interval_ms)
   return setInterval(() => {
+    evaluate(exp[1], env)
+  }, exp[2])
+}
+
+function _setTimeout(exp, env) {
+  // (setTimeout lambda interval_ms)
+  return setTimeout(() => {
     evaluate(exp[1], env)
   }, exp[2])
 }
